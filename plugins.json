@@ -1,0 +1,103 @@
+{
+	"comment": "TODO: remove junk plugins, figure everything out",
+	"plugins": {
+		"Advertisements": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=155705",
+			"force_download": {
+				"url": "https://github.com/ErikMinekus/sm-advertisements/releases/latest/download/release.tar.gz",
+				"dest_filename": "advertisements.tar.gz",
+				"format": "tgz",
+				"install_location": null,
+				"install_locations": {
+					"some/archive/path": "tf/addons/"
+				}
+			}
+		},
+		"AFK Manager": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=708265"
+		},
+		"Antiflood": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583",
+			"comment": "Prevents bind spamming"
+		},
+		"BanDisconnected": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1273254"
+		},
+		"BonusRoundImmunity": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=703282"
+		},
+		"ChatFilter": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=71674"
+		},
+		"ClassRestrict": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=642353"
+		},
+		"CommandCooldowns": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=2100802"
+		},
+		"CustomChatColors": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1721580"
+		},
+		"DoubleQuoteFix": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=271137"
+		},
+		"DynamicTargeting": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=273779"
+		},
+		"gScramble": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983244"
+		},
+		"HideAnyChatTriggers": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=251594"
+		},
+		"LogConnections": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=201967"
+		},
+		"MapConfigs": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=68589"
+		},
+		"MapRate": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=69593"
+		},
+		"NameChangeInfo": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983726"
+		},
+		"NativeVotes": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008"
+		},
+		"SecurityEntityLimit": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=2316579"
+		},
+		"SimpleChatProcessor": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=198501"
+		},
+		"SM_Downloader": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=602270"
+		},
+		"SprayTrace": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=75480"
+		},
+		"tDetailWinPanel": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=187199"
+		},
+		"TeamSwitch": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=587405",
+			"comment": "Admin command."
+		},
+		"KickVoteImmunity": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1506666",
+			"comment": "Causes TF2 player kick votes to obey SM immunity levels."
+		},
+		"TidyChat": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=909778"
+		},
+		"Ultimate Mapchooser": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=134190",
+			"comment": "Needs some configuring."
+		},
+		"VotekickSwitcher": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1636142",
+			"comment": "Enables votekicks when no admins with access to sm_kick are connected."
+		}
+	}
+}

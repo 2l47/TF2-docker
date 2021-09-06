@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# We should drop everything else on input if it's not going to SSH, the DB, or a server
+
+# SSH
+
+# MariaDB
+
+# TCP is used for RCON
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27015 -m state --state NEW,ESTABLISHED -j ACCEPT
+# UDP is used for A2S and client connections (a2s? see python-a2s readme for capitalization)
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27015 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+# ...do any of these get used?
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27016 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27017 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27018 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p tcp -m tcp --dport 27020 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+# UDP...
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27016 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27017 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27018 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i docker0 -p udp -m udp --dport 27020 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+# Need to whitelist SourceTV...

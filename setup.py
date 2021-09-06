@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+
+__version__ = "0.1.0"
+
+import argparse
+import configparser
+import docker
+from helpers import genpass, normalize_permissions
+import html
+import json
+import os
+import pathlib
+import re
+import requests
+import shutil
+import tarfile
+import urllib.parse
+import urllib.request
+
+
+
+# ======== Process initial container options ========
+
+parser = argparse.ArgumentParser(
+	description = f"TF2-docker container setup script, version {__version__}",
+	formatter_class = argparse.ArgumentDefaultsHelpFormatter
+)
+
+# General container options
+parser.add_argument("--profile-name", "-p", type=str, default="default", help="An optional profile name with custom configurations, files, and plugins.")
+parser.add_argument("--region-name", "-r", type=str, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide a region, e.g. \"dallas\"")
+parser.add_argument("--instance-number", "-i", type=int, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide an instance number, e.g. \"1\"")
+parser.add_argument("--cpu-affinity", "-c", type=str, default="", help="The CPUs in which to allow container execution. e.g. \"0,1\" or \"0-3\"")
+
+# Plugin-specific options
+parser.add_argument("--with-sbpp", action="store_true", help="Attempts to install SourceBans++ using the configuration supplied in \"sbpp.ini\".")
+
+# Behavioral options
+parser.add_argument("--overwrite", "-o", action="store_true", help="Stops and removes any preexisting containers with the same name.")
+parser.add_argument("--erase", "-e", action="store_true", help="Erases preexisting container data directories with the same name.")
+parser.add_argument("--force-reuse", "-f", action="store_true", help="Forces reuse of existing container data directories. A bad idea due to repeated cfg appending.")
+parser.add_argument("--skip-update", "-s", action="store_true", help="Skips updating the base system.")
+
+# Parse the command-line arguments and make sure they're sane
+args = parser.parse_args()
+assert args.region_name.isalpha() and args.region_name.islower()
+assert args.instance_number > 0
+
+# Define the container name based on the profile name, server region, and instance number
+container_name = f"tf2-{args.region_name}-{args.instance_number}"
+if args.profile_name:
+	assert args.profile_name.isalpha() and args.profile_name.islower()
+	container_name = f"tf2-{args.profile_name}-{args.region_name}-{args.instance_number}"
+
+
+# ======== Prepare the container configuration ========
+
+# Connect to the docker socket
+client = docker.from_env()
+
+# Make sure a container doesn't already exist with this name
+print(f"Using container name {container_name}; checking for pre-existing containers...")
+preexisting = client.containers.list(all=True, filters={"name": container_name})
+descriptors = [f"{i}: {i.name}" for i in preexisting]
+if descriptors:
+	if not args.overwrite:
+		raise SystemExit(f"ERROR: Found {len(preexisting)} pre-existing container(s) matching the name \"{container_name}\":\n\t{descriptors}\n\nYou may need to delete them or pick another identifier.")
+	else:
+		# "Overwrite" the container(s)
+		print("WARNING: Overwriting preexisting containers!")
+		for c in preexisting:
+			print(f"Stopping container \"{c.name}\" ({c})...")
+			c.stop()
+			print(f"Removing container \"{c.name}\" ({c})...")
+			c.remove(v=True)
+else:
+	print("No conflictingly named containers found.")
+
+# Set up a persistent data directory for the container
+data_dir = pathlib.PosixPath(f"container-data/{container_name}")
+if data_dir.exists() and args.erase:
+	print("WARNING: Erasing existing container data!")
+	shutil.rmtree(data_dir)
+try:
+	pathlib.Path.mkdir(data_dir, parents=True)
+except FileExistsError:
+	if not args.force_reuse:
+		raise SystemExit("ERROR: A data directory for a container with this name already exists.\nSince there doesn't seem to be an associated container, you may wish to delete it.")
+
+# Randomized passwords get stored here
+try:
+	os.mkdir("container-passwords")
+except FileExistsError:
+	pass
+
+# Plugins get downloaded here
+try:
+	os.mkdir("downloads")
+except FileExistsError:
+	pass
+
+
+# ======== Load and process configuration files ========
+
+# Reads values from configuration files
+config = configparser.ConfigParser()
+# Preserve case-sensitive keys
+config.optionxform = str
+# Load default settings, passwords, tokens, keys, etc.
+config.read("default-settings.ini")
+config.read("settings.ini")
+config.read("sample-credentials.ini")
+config.read("credentials.ini")
+
+# Load any overriding or additional settings from the selected profile, if any
+if args.profile_name:
+	config.read(f"profiles/{args.profile_name}/settings.ini")
+
+# srcds configuration time
+srcds = config["srcds"]
+creds = config["credentials"]
+
+# Check if we actually have a token first, though
+if len(creds["SRCDS_LOGIN_TOKEN"]) != 32:
+	print("\nWARNING: You have not entered a game server login token in credentials.ini (SRCDS_LOGIN_TOKEN).")
+	print("Without one, your server might not display in the community server browser or be reachable.")
+	print("You probably want to create one at: https://steamcommunity.com/dev/managegameservers")
+	print("See sample-credentials.ini for instructions on how to store your credentials.")
+
+# Check if the profile wants a random server/rcon password
+for i in ["SRCDS_PW", "SRCDS_RCONPW"]:
+	if srcds[i] == "random":
+		srcds[i] = genpass()
+		fname = f"container-passwords/{container_name}_{i}.txt"
+		with open(fname, "w") as f:
+			f.write(f"{srcds[i]}\n")
+		print(f"\nThe {i} has been changed to: {srcds[i]}\nFor your convenience, it has been saved to {fname}.")
+
+# Different SRCDS instances need different ports!
+srcds["SRCDS_PORT"] = str(int(srcds["SRCDS_START_PORT"]) + args.instance_number - 1)
+print(f"\nSRCDS port set to {srcds['SRCDS_PORT']}.")
+srcds["SRCDS_TV_PORT"] = str(int(srcds["SRCDS_TV_START_PORT"]) + args.instance_number - 1)
+print(f"SourceTV port set to {srcds['SRCDS_TV_PORT']}.")
+# We use different key names in our credential configuration files for clarity
+srcds["SRCDS_TOKEN"] = creds["SRCDS_LOGIN_TOKEN"]
+srcds["SRCDS_WORKSHOP_AUTHKEY"] = creds["STEAM_WEB_API_KEY"]
+# Construct an environment dict from our config for the docker image to use on its first run
+env = dict(srcds.items())
+
+# Adds the region name and instance number to the server hostname if enabled
+if srcds.getboolean("append-identifier-to-hostname"):
+	srcds["SRCDS_HOSTNAME"] = f"{srcds['SRCDS_HOSTNAME']} | {args.region_name} | {args.instance_number}"
+
+
+# ======== Initialize the container ========
+
+# Pull the docker image
+print("\nPulling the docker image...")
+client.images.pull("cm2network/tf2:sourcemod")
+
+# Create the container
+data_directory = pathlib.Path.resolve(pathlib.PosixPath(f"container-data/{container_name}"), strict=True)
+container = client.containers.create("cm2network/tf2:sourcemod", cpuset_cpus=args.cpu_affinity, detach=True, environment=env, name=container_name, network_mode="host", volumes={data_directory: {"bind": "/home/steam/tf-dedicated/"}})
+
+# Start the container
+print("Starting the container...")
+container.start()
+
+# Now we need to do all the actual setup stuff.
+print("Waiting for the base docker image to install the TF2 SRCDS with SourceMod before installing profile configurations, files, and plugins...\n")
+ready_message = "Success! App '232250' already up to date."
+logs = container.attach(stdout=True, stream=True)
+for backlog in logs:
+	lines = backlog.decode().split("\n")
+	for l in lines:
+		print(l)
+	if ready_message in lines:
+		break
+print(f"\n{'=' * 8} SRCDS installed! {'=' * 8}")
+
+
+# ======== Update the base system ========
+
+if not args.skip_update:
+	print(f"\n{'=' * 8} Updating the base system... {'=' * 8}")
+	for command in ["apt update", "apt full-upgrade -y", "apt autoremove --purge -y"]:
+		exit_code, output = container.exec_run(command, user="root")
+		print(f"{output.decode()}\n")
+		assert exit_code == 0
+
+# Go ahead and shutdown the server while we set things up.
+print(f"{'=' * 8} Shutting down the container for server configuration... {'=' * 8}")
+container.stop()
+
+
+# ======== Define configuration helper functions ========
+
+# Edit configuration options easily by replacing patterns
+def edit(cfg, pattern, repl):
+	assert not cfg.startswith(str(data_directory))
+	assert not cfg.startswith("/")
+	p = pathlib.Path(f"{data_directory}/{cfg}")
+	p.write_text(re.sub(pattern, repl, p.read_text(), flags=re.M))
+
+
+# This one guesses at what you want to change
+def dynamic_edit(cfg, value):
+	pass
+
+
+# ======== Configure the server ========
+
+print(f"\n{'=' * 8} Starting configuration... {'=' * 8}")
+# The first thing to do is make the configured server name persistent.
+edit("tf/cfg/server.cfg", "^hostname.*", f"hostname {srcds['SRCDS_HOSTNAME']}")
+# Same thing for the rcon password
+edit("tf/cfg/server.cfg", "^rcon_password.*", f"rcon_password {srcds['SRCDS_RCONPW']}")
+
+# Direct-copy and append files from the global profile and selected profile
+for profile_name in ["global", args.profile_name]:
+	print(f"\nApplying configurations from the \"{profile_name}\" profile...")
+
+	# Dynamically copy profile data
+	print(f"Direct-copying files...")
+	profile_prefix = f"profiles/{profile_name}"
+	copy_prefix = f"{profile_prefix}/direct-copy/"
+	if os.path.isdir(copy_prefix):
+		shutil.copytree(copy_prefix, f"{data_directory}/", dirs_exist_ok=True)
+
+	# Append to files
+	print("Appending profile files to container files...")
+	p = pathlib.PosixPath(f"{profile_prefix}/append-to/")
+	for f in p.glob("**/*"):
+		if f.is_file():
+			rel_path = f.relative_to(f"{profile_prefix}/append-to/")
+			sv_f = pathlib.PosixPath(f"{data_directory}/{rel_path}")
+			sv_f_data = sv_f.read_text() + "\n" + f.read_text()
+			sv_f.write_text(sv_f_data)
+
+
+# ======== Install server plugins ========
+
+print(f"\n{'=' * 8} Installing plugins... {'=' * 8}")
+plugins = config["plugins"]
+
+# Deal with special keys first.
+if plugins.getboolean("enable-nominate-rtv"):
+	repo = os.getcwd()
+	os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
+	for i in ["mapchooser.smx", "nominations.smx", "rockthevote.smx"]:
+		p = pathlib.PosixPath(i)
+		if p.exists():
+			p.replace(f"../{i}")
+	os.chdir(repo)
+
+# Load our plugin database.
+with open("plugins.json") as f:
+	plugin_db = json.load(f)
+
+# Set the user agent for urllib.request.urlretrieve()
+opener = urllib.request.build_opener()
+opener.addheaders = [("User-agent", f"setup.py/{__version__} (https://github.com/2l47/TF2-docker)")]
+urllib.request.install_opener(opener)
+
+# Now download and install the plugins requested.
+session = requests.Session()
+session.headers.update({"user-agent": f"setup.py/{__version__} (https://github.com/2l47/TF2-docker)"})
+requested_plugins = plugins["requested-plugins"].split(",")
+for pname in requested_plugins:
+	# Remove leading spaces from the plugin name
+	pname = pname.strip()
+	if pname == "":
+		if len(requested_plugins) == 1:
+			print("No plugins requested...")
+		else:
+			print("WARNING: Extra comma in requested-plugins?")
+		continue
+	print(f"\nDownloading and installing plugin: {pname}")
+	# Get the plugin entry
+	p = plugin_db["plugins"][pname]
+	# Directly download the plugin from the specified URL and install it as specified
+	if "force_download" in p:
+		# We're using this legacy urllib method because it lets us manually specify a destination filename if necessary
+		urllib.request.urlretrieve(p["force_download"]["url"], f"downloads/{p['force_download']['dest_filename']}")
+		# TODO: Install the plugin as specified
+		pass
+	# Otherwise get the smx plugin file's download link from the plugin's AlliedModders thread's webpage HTML
+	else:
+		response = session.get(p["thread_url"])
+		content = response.content.decode("latin")
+		# This ought to work at least some of the time
+		attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
+		if len(attachment_urls_escaped) > 1:
+			raise RuntimeError(f"Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}")
+		# Note this is just singular
+		attachment_url_escaped = attachment_urls_escaped[0]
+		print(f"Got escaped download URL from plugin thread ({p['thread_url']}): {attachment_url_escaped}")
+		attachment_url = html.unescape(attachment_url_escaped)
+		print(f"Got download URL from plugin thread ({p['thread_url']}): {attachment_url}")
+		urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+
+
+# If the user requested SourceBans++ installation, go ahead and attempt it.
+if args.with_sbpp:
+	# Make sure sbpp.ini exists. If it does, the user has run ./sbpp-installer.py, although that doesn't necessarily mean it was successful. Geronimo!
+	assert config.read("sbpp.ini") == ["sbpp.ini"]
+	print("\nAttempting SourceBans++ installation...")
+	# Figure out the latest version of SBPP.
+	response = session.get("https://github.com/sbpp/sourcebans-pp/releases")
+	# We need the plugin only...
+	versions = re.findall(r'(?<=href=")/sbpp/sourcebans-pp/releases/download/[0-9.]+/sourcebans-pp-[0-9.]+.plugin-only.tar.gz(?=")', response.content.decode(), flags=re.M)
+	latest = versions[0]
+	download_url = f"https://github.com/{latest}"
+	# Download it.
+	dest_filename = "downloads/sourcebans-pp-latest.plugin-only.tar.gz"
+	urllib.request.urlretrieve(download_url, dest_filename)
+	# Extract.
+	tar = tarfile.open(dest_filename, mode="r:gz")
+	members = tar.getmembers()
+	root = members[0].name
+	print(f"Archive root: {root}")
+	assert re.fullmatch(r"sourcebans-pp-\d+.\d+.\d+.plugin-only", root)
+	tar.extractall("downloads/")
+	extracted = pathlib.PosixPath(f"downloads/{root}/")
+	normalize_permissions(extracted)
+	shutil.copytree(extracted, f"container-data/{container_name}/tf/", dirs_exist_ok=True)
+	shutil.rmtree(extracted)
+	# Insert the SourceBans++ database configuration from sbpp.ini
+	# This formatting is as good as it's gonna get
+	db_cfg = (
+		'\n	"sourcebans"\n'
+		'	{\n'
+		'		"driver"	"default"\n'
+		f'		"host"		"{config["sbpp"]["db-host"]}"\n'
+		f'		"database"	"{config["sbpp"]["db-name"]}"\n'
+		f'		"user"		"{config["sbpp"]["db-user"]}"\n'
+		f'		"pass"		"{config["sbpp"]["db-pass"]}"\n'
+		'		"timeout"	"10"\n'
+		f'		"port"		"{config["sbpp"]["db-port"]}"\n'
+		'	}\n'
+		'}'
+	)
+	edit("tf/addons/sourcemod/configs/databases.cfg", r'}\n*\Z', db_cfg)
+	print("Success!")
+
+
+# ======== Yeet ========
+
+print(f"\n{'=' * 8} Configuration complete, starting the container! {'=' * 8}")
+container.start()

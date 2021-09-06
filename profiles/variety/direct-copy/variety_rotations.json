@@ -1,0 +1,346 @@
+{
+    "R1": {
+        "cp_snowcrystal_rc8": {
+            "type": "workshop",
+            "workshop_id": "504542186"
+        },
+        "cp_furnace_rc": {
+            "type": "workshop",
+            "workshop_id": "454147907"
+        },
+        "cp_sunshine": {
+            "type": "stock"
+        },
+        "cp_abyss_b81": {
+            "type": "workshop",
+            "workshop_id": "702844658"
+        },
+        "koth_suijin": {
+            "type": "stock"
+        },
+        "koth_kemptown_b8": {
+            "type": "workshop",
+            "workshop_id": "767410655"
+        },
+        "koth_slaughter_b2a": {
+            "type": "workshop",
+            "workshop_id": "1712845210"
+        },
+        "koth_harter_rc1": {
+            "type": "workshop",
+            "workshop_id": "2149817484"
+        },
+        "pl_enclosure_final": {
+            "type": "stock"
+        },
+        "pl_badwater_pro_v12": {
+            "type": "workshop",
+            "workshop_id": "2142942074"
+        },
+        "pl_oasis_b4": {
+            "type": "workshop",
+            "workshop_id": "1366095901"
+        },
+        "pl_clifftop_b3": {
+            "type": "workshop",
+            "workshop_id": "565392839"
+        }
+    },
+    "R2": {
+        "cp_snowbase_b10b": {
+            "type": "tf2maps",
+            "url": "https://tf2maps.net/downloads/snowbase.36211/",
+            "comment": "The workshop entry was last updated Feb 24, 2021. The TF2Maps upload has gone through at least 10 revisions since then.",
+            "alternatives": [
+                {
+                    "type": "workshop",
+                    "workshop_id": "2081770490",
+                    "comment": "Out of date."
+                }
+            ]
+        },
+        "cp_hazyfort_rc6": {
+            "type": "workshop",
+            "workshop_id": "1365963729"
+        },
+        "cp_foundry": {
+            "type": "stock"
+        },
+        "cp_mist_rc1e": {
+            "type": "workshop",
+            "workshop_id": "1686816800"
+        },
+        "koth_lakeside_final": {
+            "type": "stock"
+        },
+        "koth_avalanche_rc13": {
+            "type": "workshop",
+            "workshop_id": "747296123"
+        },
+        "koth_bagel_rc4a": {
+            "type": "workshop",
+            "workshop_id": "2514036946"
+        },
+        "koth_cascade_v2_b6": {
+            "type": "workshop",
+            "workshop_id": "1133407330"
+        },
+        "pl_frontier_final": {
+            "type": "stock"
+        },
+        "pl_upward": {
+            "type": "stock"
+        },
+        "pl_coal_rc24": {
+            "type": "workshop",
+            "workshop_id": "1606356102"
+        },
+        "pl_stallberg_rc3": {
+            "type": "workshop",
+            "workshop_id": "1849111469"
+        }
+    },
+    "R3": {
+        "cp_conifer_b7": {
+            "type": "workshop",
+            "workshop_id": "1419048064"
+        },
+        "cp_rocketforge_b3": {
+            "type": "workshop",
+            "workshop_id": "2359977726"
+        },
+        "cp_metalworks": {
+            "type": "stock"
+        },
+        "cp_reckoner_rc6": {
+            "type": "workshop",
+            "workshop_id": "674719999"
+        },
+        "koth_product_rcx": {
+            "type": "workshop",
+            "workshop_id": "454272353"
+        },
+        "koth_canopy_rc2": {
+            "type": "workshop",
+            "workshop_id": "804090988"
+        },
+        "koth_icetower_rc4": {
+            "type": "workshop",
+            "workshop_id": "1356347293"
+        },
+        "koth_hangar_rc2": {
+            "type": "workshop",
+            "workshop_id": "484062492"
+        },
+        "pl_barnblitz_pro7": {
+            "type": "workshop",
+            "workshop_id": "582280235"
+        },
+        "pl_rocketravine_b6": {
+            "type": "workshop",
+            "workshop_id": "550974850"
+        },
+        "pl_ququmannz_rc2": {
+            "type": "workshop",
+            "workshop_id": "841291955"
+        },
+        "pl_mesaworks_rc3": {
+            "type": "workshop",
+            "workshop_id": "1961498216"
+        }
+    },
+    "R4": {
+        "cp_mountainlab": {
+            "type": "stock"
+        },
+        "cp_snowlodge_b5": {
+            "type": "workshop",
+            "workshop_id": "558352341"
+        },
+        "cp_process_final": {
+            "type": "stock"
+        },
+        "cp_glassworks_rc6a": {
+            "type": "workshop",
+            "workshop_id": "454118349"
+        },
+        "koth_harvest_final": {
+            "type": "stock"
+        },
+        "koth_ahau_rc2": {
+            "type": "workshop",
+            "workshop_id": "844556164"
+        },
+        "koth_synthetic_rc6a": {
+            "type": "workshop",
+            "workshop_id": "1549817316"
+        },
+        "koth_sharkbay_b13": {
+            "type": "workshop",
+            "workshop_id": "2404226979"
+        },
+        "pl_swiftwater_final1": {
+            "type": "stock"
+        },
+        "pl_vigil_rc7": {
+            "type": "workshop",
+            "workshop_id": "1266210012"
+        },
+        "pl_fifthcurve_rc1": {
+            "type": "workshop",
+            "workshop_id": "648227046"
+        },
+        "pl_mountainside_rc2": {
+            "type": "workshop",
+            "workshop_id": "633361054"
+        }
+    },
+    "R5": {
+        "cp_overgrown_rc5a": {
+            "type": "workshop",
+            "workshop_id": "503939302"
+        },
+        "cp_snowbase_b10b": {
+            "type": "tf2maps",
+            "url": "https://tf2maps.net/downloads/snowbase.36211/",
+            "comment": "THIS IS A DUPLICATE FROM R2. FIXME."
+        },
+        "cp_granary": {
+            "type": "stock"
+        },
+        "cp_priderock_b2": {
+            "type": "workshop",
+            "workshop_id": "854220622"
+        },
+        "koth_king": {
+            "type": "stock"
+        },
+        "koth_moonshine_rc": {
+            "type": "workshop",
+            "workshop_id": "454253828"
+        },
+        "koth_sekhmet_b4": {
+            "type": "workshop",
+            "workshop_id": "630617124"
+        },
+        "koth_chasm_b1": {
+            "type": "workshop",
+            "workshop_id": "454131968"
+        },
+        "pl_pier": {
+            "type": "stock"
+        },
+        "pl_sludgepit_final4": {
+            "type": "workshop",
+            "workshop_id": "1445384680"
+        },
+        "pl_stranded_rc6": {
+            "type": "workshop",
+            "workshop_id": "1481954279"
+        },
+        "pl_beerbowl_rc1": {
+            "type": "workshop",
+            "workshop_id": "588744025"
+        }
+    },
+    "R6": {
+        "cp_gravelpit": {
+            "type": "stock"
+        },
+        "cp_stoneyridge_rc2": {
+            "type": "workshop",
+            "workshop_id": "454159250"
+        },
+        "cp_coldfront": {
+            "type": "stock"
+        },
+        "cp_tidal_v4": {
+            "type": "workshop",
+            "workshop_id": "570869131"
+        },
+        "koth_highpass": {
+            "type": "stock"
+        },
+        "koth_iglesia_b3b": {
+            "type": "workshop",
+            "workshop_id": "1119181564"
+        },
+        "koth_watermill_final": {
+            "type": "workshop",
+            "workshop_id": "2112101546"
+        },
+        "koth_arctic_b3": {
+            "type": "workshop",
+            "workshop_id": "460499484"
+        },
+        "pl_snowycoast": {
+            "type": "stock"
+        },
+        "pl_humidity_rc5": {
+            "type": "workshop",
+            "workshop_id": "971228749"
+        },
+        "pl_corrode_rc2": {
+            "type": "workshop",
+            "workshop_id": "546577989"
+        },
+        "pl_escarpment_rc1": {
+            "type": "workshop",
+            "workshop_id": "454194336"
+        }
+    },
+    "R7": {
+        "cp_gorge": {
+            "type": "stock"
+        },
+        "cp_fulgur_rc1": {
+            "type": "workshop",
+            "workshop_id": "2068252300"
+        },
+        "cp_snakewater_final1": {
+            "type": "stock"
+        },
+        "cp_kalinka_rc6a": {
+            "type": "workshop",
+            "workshop_id": "1272700588"
+        },
+        "koth_sawmill": {
+            "type": "stock"
+        },
+        "koth_cinder_rc4": {
+            "type": "workshop",
+            "workshop_id": "1378877008"
+        },
+        "koth_clearcut_b15d": {
+            "type": "tf2maps",
+            "url": "https://tf2maps.net/downloads/clearcut.5682/",
+            "comment": "The author has uploaded 3 releases to the Steam workshop, including b11, b14c, and b15. The latest revision, koth_clearcut_b15d, was posted to TF2Maps but did not update the respective workshop release, koth_clearcut_b15. This makes the latest couple of TF2Maps revisions superior to the current workshop version.",
+            "alternatives": [
+                {
+                    "type": "workshop",
+                    "workshop_id": "2107050255",
+                    "comment": "Slightly out of date."
+                }
+            ]
+        },
+        "koth_spillway_rc3a": {
+            "type": "workshop",
+            "workshop_id": "1962574007"
+        },
+        "pl_borneo": {
+            "type": "stock"
+        },
+        "pl_camber_rc2": {
+            "type": "workshop",
+            "workshop_id": "1375766014"
+        },
+        "pl_boundary_final": {
+            "type": "workshop",
+            "workshop_id": "456799153"
+        },
+        "pl_angkor_rc2": {
+            "type": "workshop",
+            "workshop_id": "454686689"
+        }
+    }
+}
