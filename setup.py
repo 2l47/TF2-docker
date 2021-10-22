@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
+__ghrepo = "https://github.com/2l47/TF2-docker"
 
 import argparse
 import configparser
 import docker
-from helpers import genpass, normalize_permissions
+from helpers import genpass, normalize_permissions, untar
 import html
 import json
 import os
@@ -13,7 +14,6 @@ import pathlib
 import re
 import requests
 import shutil
-import tarfile
 import urllib.parse
 import urllib.request
 
@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser(
 )
 
 # General container options
-parser.add_argument("--profile-name", "-p", type=str, default="default", help="An optional profile name with custom configurations, files, and plugins.")
+parser.add_argument("--profile-name", "-p", type=str, required=True, help="A profile name with custom configurations, files, and plugins.")
 parser.add_argument("--region-name", "-r", type=str, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide a region, e.g. \"dallas\"")
 parser.add_argument("--instance-number", "-i", type=int, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide an instance number, e.g. \"1\"")
 parser.add_argument("--cpu-affinity", "-c", type=str, default="", help="The CPUs in which to allow container execution. e.g. \"0,1\" or \"0-3\"")
@@ -47,10 +47,8 @@ assert args.region_name.isalpha() and args.region_name.islower()
 assert args.instance_number > 0
 
 # Define the container name based on the profile name, server region, and instance number
-container_name = f"tf2-{args.region_name}-{args.instance_number}"
-if args.profile_name:
-	assert args.profile_name.isalpha() and args.profile_name.islower()
-	container_name = f"tf2-{args.profile_name}-{args.region_name}-{args.instance_number}"
+assert args.profile_name.isalpha() and args.profile_name.islower()
+container_name = f"tf2-{args.profile_name}-{args.region_name}-{args.instance_number}"
 
 
 # ======== Prepare the container configuration ========
@@ -237,6 +235,13 @@ for profile_name in ["global", args.profile_name]:
 			sv_f_data = sv_f.read_text() + "\n" + f.read_text()
 			sv_f.write_text(sv_f_data)
 
+# Execute any user scripts for the profile.
+for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
+	if filename.endswith(".py"):
+		module = filename.split(".py")[0]
+		exec(f"from profiles.{args.profile_name}.preinst_modules.{module} import loader")
+		loader(args.profile_name, args.region_name, args.instance_number, container)
+
 
 # ======== Install server plugins ========
 
@@ -257,14 +262,15 @@ if plugins.getboolean("enable-nominate-rtv"):
 with open("plugins.json") as f:
 	plugin_db = json.load(f)
 
-# Set the user agent for urllib.request.urlretrieve()
+# Set the user agent for urllib.request.urlretrieve(), used for file downloads
 opener = urllib.request.build_opener()
-opener.addheaders = [("User-agent", f"setup.py/{__version__} (https://github.com/2l47/TF2-docker)")]
+opener.addheaders = [("User-Agent", f"setup.py/{__version__} ({__ghrepo})")]
 urllib.request.install_opener(opener)
 
 # Now download and install the plugins requested.
 session = requests.Session()
-session.headers.update({"user-agent": f"setup.py/{__version__} (https://github.com/2l47/TF2-docker)"})
+# Set the user agent for the session, used for requesting webpages
+session.headers.update({"User-Agent": f"setup.py/{__version__} ({__ghrepo})"})
 requested_plugins = plugins["requested-plugins"].split(",")
 for pname in requested_plugins:
 	# Remove leading spaces from the plugin name
@@ -280,24 +286,54 @@ for pname in requested_plugins:
 	p = plugin_db["plugins"][pname]
 	# Directly download the plugin from the specified URL and install it as specified
 	if "force_download" in p:
-		# We're using this legacy urllib method because it lets us manually specify a destination filename if necessary
-		urllib.request.urlretrieve(p["force_download"]["url"], f"downloads/{p['force_download']['dest_filename']}")
+		print("\tDownloading and installing according to plugins.json...")
+		# We're using this legacy urllib method because it lets us specify a destination filename easily
+		assert p["force_download"]["format"].startswith(".")
+		dest_filename = f"downloads/{pname}{p['force_download']['format']}"
+		urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
 		# TODO: Install the plugin as specified
 		pass
-	# Otherwise get the smx plugin file's download link from the plugin's AlliedModders thread's webpage HTML
+	# Otherwise, try to get the smx plugin file's download link from the plugin's AlliedModders thread's webpage HTML
 	else:
+		print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
 		response = session.get(p["thread_url"])
 		content = response.content.decode("latin")
-		# This ought to work at least some of the time
+		# One of these ought to work at least some of the time
+		# A. Try to get an attachment
 		attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
 		if len(attachment_urls_escaped) > 1:
-			raise RuntimeError(f"Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}")
-		# Note this is just singular
-		attachment_url_escaped = attachment_urls_escaped[0]
-		print(f"Got escaped download URL from plugin thread ({p['thread_url']}): {attachment_url_escaped}")
-		attachment_url = html.unescape(attachment_url_escaped)
-		print(f"Got download URL from plugin thread ({p['thread_url']}): {attachment_url}")
-		urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+			error = f"\nERROR: Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}"
+			error += f"\nPlease create an issue at: {gh_repo}"
+			raise SystemExit(error)
+		elif len(attachment_urls_escaped) == 1:
+			# Note that this variable is just in the singular form
+			attachment_url_escaped = attachment_urls_escaped[0]
+			print(f"\tGot escaped download URL from thread: {attachment_url_escaped}")
+			attachment_url = html.unescape(attachment_url_escaped)
+			print(f"\tGot download URL from thread: {attachment_url}")
+			urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+		# B. No attachments found; try to get the plugin as compiled from source
+		else:
+			print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
+			plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
+			# Default selection
+			compiler_selection = 0
+			# User specified selection
+			if "force_compiler_selection" in p:
+				compiler_selection = p["force_compiler_selection"]
+			# If the user doesn't specify and there's more than once choice, bail out
+			elif len(plugin_compiler_urls) > 1:
+				error = f"\nERROR: Found {len(plugin_compiler_urls)} plugin compiler URLs (expected 1): {plugin_compiler_urls}"
+				error += "\nHint: You can specify an index to select in plugins.json with the field \"force_compiler_selection\"."
+				raise SystemExit(error)
+			# Try to retrieve the requested index
+			try:
+				# Note that this variable is just in the singular form
+				plugin_compiler_url = plugin_compiler_urls[compiler_selection]
+				print(f"\tGot plugin compiler URL from thread: {plugin_compiler_url}")
+				urllib.request.urlretrieve(plugin_compiler_url, f"downloads/{pname}.smx")
+			except IndexError:
+				raise SystemExit(f"ERROR: Compiler list index selection ({compiler_selection}) out of range ({len(plugin_compiler_urls)})")
 
 
 # If the user requested SourceBans++ installation, go ahead and attempt it.
@@ -315,18 +351,17 @@ if args.with_sbpp:
 	dest_filename = "downloads/sourcebans-pp-latest.plugin-only.tar.gz"
 	urllib.request.urlretrieve(download_url, dest_filename)
 	# Extract.
-	tar = tarfile.open(dest_filename, mode="r:gz")
-	members = tar.getmembers()
-	root = members[0].name
-	print(f"Archive root: {root}")
-	assert re.fullmatch(r"sourcebans-pp-\d+.\d+.\d+.plugin-only", root)
-	tar.extractall("downloads/")
-	extracted = pathlib.PosixPath(f"downloads/{root}/")
+	extracted = untar(dest_filename, expect_root_regex="addons")
+	# Normalize permissions yes
 	normalize_permissions(extracted)
+	# Now copy it in and then delete the extracted files
 	shutil.copytree(extracted, f"container-data/{container_name}/tf/", dirs_exist_ok=True)
 	shutil.rmtree(extracted)
 	# Insert the SourceBans++ database configuration from sbpp.ini
 	# This formatting is as good as it's gonna get
+	# By the way, the default database connect timeout appears to be 60 seconds if you leave it set to 0
+	# (https://github.com/alliedmodders/sourcemod/blob/1fbe5e/extensions/mysql/mysql/MyDriver.cpp#L101)
+	# So yeah we use 10 seconds, that's plenty generous
 	db_cfg = (
 		'\n	"sourcebans"\n'
 		'	{\n'

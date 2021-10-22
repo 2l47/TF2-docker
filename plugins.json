@@ -5,12 +5,8 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=155705",
 			"force_download": {
 				"url": "https://github.com/ErikMinekus/sm-advertisements/releases/latest/download/release.tar.gz",
-				"dest_filename": "advertisements.tar.gz",
-				"format": "tgz",
-				"install_location": null,
-				"install_locations": {
-					"some/archive/path": "tf/addons/"
-				}
+				"format": ".tar.gz",
+				"install_location": "tf/"
 			}
 		},
 		"AFK Manager": {
@@ -36,7 +32,15 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=2100802"
 		},
 		"CustomChatColors": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1721580"
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1721580",
+			"force_download": {
+				"url": "http://www.doctormckay.com/download/package/chatcolors",
+				"format": ".zip",
+				"install_location": "tf/addons/sourcemod/"
+			},
+			"requires": [
+				"SimpleChatProcessor"
+			]
 		},
 		"DoubleQuoteFix": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=271137"
@@ -86,6 +90,7 @@
 		},
 		"KickVoteImmunity": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1506666",
+			"force_compiler_selection": 0,
 			"comment": "Causes TF2 player kick votes to obey SM immunity levels."
 		},
 		"TidyChat": {

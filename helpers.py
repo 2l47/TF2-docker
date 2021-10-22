@@ -3,6 +3,7 @@
 import pathlib
 import re
 import subprocess
+import tarfile
 from xkcdpass import xkcd_password as xp
 
 
@@ -51,3 +52,16 @@ def prompt(text):
 def sed(filename, pattern, repl):
 	p = pathlib.Path(filename)
 	p.write_text(re.sub(pattern, repl, p.read_text(), flags=re.M))
+
+
+# Extracts the given tarfile and returns the path to the extracted files
+def untar(filename, mode="r:gz", expect_root_regex=None):
+	print(f"Opening tarfile \"{filename}\" in mode \"{mode}\" for unarchiving...")
+	tar = tarfile.open(filename, mode)
+	members = tar.getmembers()
+	root = members[0].name
+	print(f"Archive root: {root}")
+	if expect_root_regex:
+		assert re.fullmatch(expect_root_regex, root)
+	tar.extractall("downloads/")
+	return pathlib.PosixPath(f"downloads/{root}/")
