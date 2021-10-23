@@ -39,9 +39,10 @@ Run the TF2 docker container setup script to see available options: `./setup.py 
 1. Docker creates "volumes" for containers, but they don't get deleted when you delete the container they're attached to. If you've been working on a custom profile and testing it repeatedly, you may wish to run `docker volume prune -f` to delete unused volumes and free up that disk space.
 
 2. TF2-docker includes a "global" profile. Anything in here gets applied before any other profile is loaded.
-	* By default, this just enables SourceTV, which allows anyone to connect to your server on a different port (by default, STV is on port 27020 whereas the server runs on port 27015) and freely spectate without wasting any of the server's (default) 24 player slots.
+	* By default, this just enables SourceTV, which allows anyone to connect to your server on a different port (normally, STV is on port 27020 when the server game port is 27015) and freely spectate without wasting any of the server's 24 player slots.
+		* TF2-docker provides the configuration options SRCDS_START_PORT and SRCDS_TV_START_PORT, which are set to 27015 and 28015, respectively, in `default-settings.ini` to avoid conflict between multiple server instances.
+		* SRCDS_MAXPLAYERS is also set to 25 to provide SourceTV with its player slot.
 	* As far as I know, SourceTV is completely safe. If you wanted to disable it anyways, you could just put "tv_enable 0" in `profiles/yourcustomprofile/append-to/tf/cfg/server.cfg`, and the value would be overridden.
-
 
 ## Creating custom profiles
 
