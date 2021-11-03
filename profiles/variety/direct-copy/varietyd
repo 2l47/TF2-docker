@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+import daemon
+import logging, logging.handlers
+import os
+import pprint
+import requests
+import schedule
+import signal
+import subprocess
+import time
+import traceback
+
+
+
+# Enter the TF2 server directory
+os.chdir(os.path.expanduser("~/tf-dedicated"))
+
+
+# The container's region name and instance number
+with open("container-info.dat") as f:
+	container_info = f.read().strip()
+
+
+# Pre-load the webhook url
+with open("varietyd-webhook-url.txt") as f:
+	webhook_url = f.read().strip()
+
+
+# Log to stdout and file
+stdout_handler = logging.StreamHandler()
+file_handler = logging.handlers.RotatingFileHandler("varietyd.log", maxBytes=1024 * 1024, backupCount=5)
+logging.basicConfig(
+	format = "[%(asctime)s] [%(levelname)s] [%(funcName)s:%(lineno)d] %(message)s",
+	datefmt = "%a %b %d @ %R:%S",
+	# The default level for loggers is WARNING instead of NOTSET like for handlers
+	level = logging.NOTSET,
+	handlers = [stdout_handler, file_handler]
+)
+
+# Ignore debug logging from the urllib3 library
+logging.getLogger("urllib3").setLevel(logging.INFO)
+
+# Stash the file descriptors of our logging handlers so they can be preserved when we daemonize
+files_preserve = [stdout_handler.stream.fileno(), file_handler.stream.fileno()]
+
+
+# Sends the given content to the Discord webhook
+def whSend(content, username="varietyd", attempt_num=1):
+	# All content should be prefixed with the container info
+	if attempt_num == 1:
+		content = f"[{container_info}] {content}"
+	# Tack on a header for retries
+	toSend = f"[RETRY {attempt_num - 1}] {content}" if attempt_num > 1 else content
+	response = requests.post(f"{webhook_url}?wait=true", data={"content": toSend, "username": username})
+	# Make sure the message was sent; if not, retry up to 2 more times
+	json = response.json()
+	if "content" not in json:
+		logging.warning("Content wasn't sent via webhook!")
+		logging.debug(f"Webhook response:\n{pprint.pformat(json, indent=4)}")
+		if attempt_num < 3:
+			logging.info("Retrying webhook send...")
+			# If we were ratelimited, wait the specified amount of time
+			if "retry_after" in json:
+				timeout = round(int(json["retry_after"]) / 1000, 2)
+				logging.debug(f"Webhook is being ratelimited, waiting {timeout} seconds...")
+				time.sleep(timeout)
+			# Otherwise just wait a second
+			else:
+				time.sleep(1)
+			whSend(content, username, attempt_num + 1)
+		else:
+			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{content}")
+
+
+def autorotate():
+	whSend("Running autorotate")
+	try:
+		output = subprocess.check_output("./autorotate.py", stderr=subprocess.STDOUT).decode()
+		if output:
+			whSend(output, username="autorotate")
+	except subprocess.CalledProcessError as ex:
+		error = ex.output.decode()
+		whSend(f"```{error}```", username="autorotate: subprocess error")
+
+
+def main():
+	#schedule.every().day.at("06:00").do(autorotate)
+	schedule.every().minute.do(autorotate)
+	while True:
+		schedule.run_pending()
+		time.sleep(1)
+
+
+def exitHandler(signum, frame):
+	signame = signal.Signals(signum).name
+	whSend(f"Daemon received signal {signame} ({signum}), terminating!")
+	context.terminate(signum, frame)
+
+
+# We have to explicitly set detach_process to True for the container because otherwise python-daemon will check and believe it's already detached
+context = daemon.DaemonContext(detach_process=True, files_preserve=files_preserve, working_directory=os.getcwd())
+context.signal_map = { signal.SIGTERM: exitHandler }
+with context:
+	whSend("Entered daemon context")
+	try:
+		main()
+	except Exception as ex:
+		error = "".join(traceback.format_exception(type(ex), ex, ex.__traceback__))
+		whSend(f"```{error}```", username="varietyd: main() error")
+
+whSend("Left daemon context due to error, terminating!")
