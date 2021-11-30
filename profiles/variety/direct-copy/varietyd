@@ -73,6 +73,9 @@ def whSend(content, username="varietyd", attempt_num=1):
 			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{content}")
 
 
+whSend("Container started, server starting...")
+
+
 def autorotate():
 	whSend("Running autorotate")
 	try:
@@ -85,8 +88,14 @@ def autorotate():
 
 
 def main():
+	# Initialize the server's mapcycle in case it isn't already, e.g. new container
+	autorotate()
+
+	# Schedule autorotate to switch rotations every day at 6 AM
 	#schedule.every().day.at("06:00").do(autorotate)
 	schedule.every().minute.do(autorotate)
+
+	# Run forever-ish
 	while True:
 		schedule.run_pending()
 		time.sleep(1)

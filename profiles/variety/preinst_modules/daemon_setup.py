@@ -22,7 +22,11 @@ def loader(profile_name, region_name, instance_number, container):
 	# autorotate.py needs to know the regional offset when it runs
 	with open(f"{container_data}/offset.dat", "w") as f:
 		# The rotation offset should be zero for the first instance in a region
-		f.write(f"{instance_number - 1}\n")
+		offset = instance_number - 1
+		# On variety.tf, we have multiple servers in a region offset further from one another to increase variety
+		if profile_name == "variety":
+			offset += 3
+		f.write(f"{offset}\n")
 
 	# Why not use a cron job?
 	# 1 - The docker image doesn't have systemd, so we'd have to spawn the cron daemon in the entry script
