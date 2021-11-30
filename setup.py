@@ -67,8 +67,9 @@ if descriptors:
 		# "Overwrite" the container(s)
 		print("WARNING: Overwriting preexisting containers!")
 		for c in preexisting:
-			print(f"Stopping container \"{c.name}\" ({c})...")
-			c.stop()
+			if c.status == "running":
+				print(f"Killing container \"{c.name}\" ({c})...")
+				c.kill()
 			print(f"Removing container \"{c.name}\" ({c})...")
 			c.remove(v=True)
 else:
@@ -187,8 +188,8 @@ if not args.skip_apt:
 		assert exit_code == 0
 
 # Go ahead and shutdown the server while we set things up.
-print(f"{'=' * 8} Shutting down the container for server configuration... {'=' * 8}")
-container.stop()
+print(f"{'=' * 8} Killing the container for server configuration... {'=' * 8}")
+container.kill()
 
 
 # ======== Define configuration helper functions ========
