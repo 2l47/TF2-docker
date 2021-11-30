@@ -39,7 +39,7 @@ parser.add_argument("--with-sbpp", action="store_true", help="Attempts to instal
 parser.add_argument("--overwrite", "-o", action="store_true", help="Stops and removes any preexisting containers with the same name.")
 parser.add_argument("--erase", "-e", action="store_true", help="Erases preexisting container data directories with the same name.")
 parser.add_argument("--force-reuse", "-f", action="store_true", help="Forces reuse of existing container data directories. A bad idea due to repeated cfg appending.")
-parser.add_argument("--skip-update", "-s", action="store_true", help="Skips updating the base system.")
+parser.add_argument("--skip-apt", "-s", action="store_true", help="Skips upgrading the base system and installing extra packages. Will cause issues with some profiles.")
 
 # Parse the command-line arguments and make sure they're sane
 args = parser.parse_args()
@@ -179,9 +179,9 @@ print(f"\n{'=' * 8} SRCDS installed! {'=' * 8}")
 
 # ======== Update the base system ========
 
-if not args.skip_update:
-	print(f"\n{'=' * 8} Updating the base system... {'=' * 8}")
-	for command in ["apt update", "apt full-upgrade -y", "apt autoremove --purge -y"]:
+if not args.skip_apt:
+	print(f"\n{'=' * 8} Upgrading the base system and installing extra packages... {'=' * 8}")
+	for command in ["apt update", "apt full-upgrade -y", "apt install net-tools procps vim -y", "apt autoremove --purge -y"]:
 		exit_code, output = container.exec_run(command, user="root")
 		print(f"{output.decode()}\n")
 		assert exit_code == 0
