@@ -248,15 +248,30 @@ for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 print(f"\n{'=' * 8} Installing plugins... {'=' * 8}")
 plugins = config["plugins"]
 
-# Deal with special keys first.
-if plugins.getboolean("enable-nominate-rtv"):
-	repo = os.getcwd()
-	os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
-	for i in ["mapchooser.smx", "nominations.smx", "rockthevote.smx"]:
-		p = pathlib.PosixPath(i)
-		if p.exists():
-			p.replace(f"../{i}")
-	os.chdir(repo)
+# Deal with special keys first
+# TODO: RGL goes here or something... maybe a preinst-module would be better for fetching maps..?
+
+# Enable the specified plugins included with SourceMod but which are disabled by default
+plugins_to_enable = plugins["enable-plugins"].split(",")
+repo = os.getcwd()
+os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
+for pname in plugins_to_enable:
+	# Remove leading spaces from the plugin name
+	pname = pname.strip()
+	if pname == "":
+		if len(plugins_to_enable) == 1:
+			print("No plugins to enable...")
+		else:
+			print("WARNING: Extra comma in enable-plugins?")
+		continue
+	print(f"Enabling plugin: {pname}")
+	s_fname = f"{pname}.smx"
+	p = pathlib.PosixPath(s_fname)
+	if p.exists():
+		p.replace(f"../{s_fname}")
+	else:
+		print(f"WARNING: Path does not exist: {p}")
+os.chdir(repo)
 
 # Load our plugin database.
 with open("plugins.json") as f:
