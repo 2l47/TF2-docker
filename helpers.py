@@ -5,6 +5,7 @@ import re
 import subprocess
 import tarfile
 from xkcdpass import xkcd_password as xp
+import zipfile
 
 
 
@@ -65,3 +66,9 @@ def untar(filename, mode="r:gz", expect_root_regex=None):
 		assert re.fullmatch(expect_root_regex, root)
 	tar.extractall("downloads/")
 	return pathlib.PosixPath(f"downloads/{root}/")
+
+
+# Unzips the zipfile somewhere
+def unzip(filename, where):
+	with zipfile.ZipFile(filename, "r") as f:
+		f.extractall(where)

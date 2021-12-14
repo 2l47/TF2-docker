@@ -6,7 +6,7 @@ __ghrepo = "https://github.com/2l47/TF2-docker"
 import argparse
 import configparser
 import docker
-from helpers import genpass, normalize_permissions, untar
+from helpers import genpass, normalize_permissions, untar, unzip
 import html
 import json
 import os
@@ -16,7 +16,6 @@ import requests
 import shutil
 import urllib.parse
 import urllib.request
-import zipfile
 
 
 
@@ -304,13 +303,23 @@ for pname in requested_plugins:
 	# Directly download the plugin from the specified URL and install it as specified
 	if "force_download" in p:
 		print("\tDownloading and installing according to plugins.json...")
+
+		# Grab plugin download configuration values
+		url = p["force_download"]["url"]
+		format = p['force_download']['format']
+		assert format.startswith(".")
+		install_location = p["force_download"]["install_location"]
+
 		# We're using this legacy urllib method because it lets us specify a destination filename easily
-		assert p["force_download"]["format"].startswith(".")
-		dest_filename = f"downloads/{pname}{p['force_download']['format']}"
+		dest_filename = f"downloads/{pname}{format}"
 		urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
-		# TODO
-		print("TODO: Install the plugin as specified")
-		pass
+
+		# Handle installation
+		if format == ".zip":
+			unzip(dest_filename, f"container-data/{container_name}/{install_location}")
+		else:
+			# TODO
+			print("TODO: Install the plugin as specified")
 	# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
 	else:
 		print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
@@ -330,8 +339,7 @@ for pname in requested_plugins:
 			attachment_url = html.unescape(attachment_url_escaped)
 			print(f"\tGot download URL from thread: {attachment_url}")
 			urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
-			with zipfile.ZipFile(f"downloads/{pname}.zip", "r") as f:
-				f.extractall(f"container-data/{container_name}/tf/")
+			unzip(f"downloads/{pname}.zip", f"container-data/{container_name}/tf/")
 		# B. No attachments found; try to get the plugin as compiled from source
 		else:
 			print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
