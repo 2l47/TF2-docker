@@ -67,7 +67,13 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983726"
 		},
 		"NativeVotes": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008"
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008",
+			"comment": "We use sapphonie's sourcemod-nativevotes-updated repository, which includes several community fixes",
+			"force_download": {
+				"url": "https://github.com/sapphonie/sourcemod-nativevotes-updated/releases/latest/download/nativevotes.zip",
+				"format": ".zip",
+				"install_location": "tf/"
+			}
 		},
 		"SecurityEntityLimit": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=2316579"
@@ -100,9 +106,23 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=134190",
 			"comment": "Needs some configuring."
 		},
+		"Votealltalk": {
+			"force_download": {
+				"url": "https://gitlab.com/nanochip/votealltalk/-/archive/master/votealltalk-master.zip?path=addons",
+				"format": ".zip",
+				"install_location": "tf/"
+			}
+		},
 		"VotekickSwitcher": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1636142",
 			"comment": "Enables votekicks when no admins with access to sm_kick are connected."
+		},
+		"Votescramble": {
+			"force_download": {
+				"url": "https://gitlab.com/nanochip/votescramble/-/archive/master/votescramble-master.zip?path=addons",
+				"format": ".zip",
+				"install_location": "tf/"
+			}
 		}
 	}
 }
