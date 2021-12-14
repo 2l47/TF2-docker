@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __ghrepo = "https://github.com/2l47/TF2-docker"
 
 import argparse
