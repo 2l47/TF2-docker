@@ -87,6 +87,13 @@
 		"SprayTrace": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=75480"
 		},
+		"StAC": {
+			"force_download": {
+				"url": "https://github.com/sapphonie/StAC-tf2/releases/latest/download/stac.zip",
+				"format": ".zip",
+				"install_location": "tf/addons/sourcemod/"
+			}
+		},
 		"tDetailWinPanel": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=187199"
 		},
