@@ -16,6 +16,7 @@ import requests
 import shutil
 import urllib.parse
 import urllib.request
+import zipfile
 
 
 
@@ -202,7 +203,7 @@ def edit(cfg, pattern, repl):
 	p.write_text(re.sub(pattern, repl, p.read_text(), flags=re.M))
 
 
-# This one guesses at what you want to change
+# TODO: This one guesses at what you want to change
 def dynamic_edit(cfg, value):
 	pass
 
@@ -236,7 +237,7 @@ for profile_name in ["global", args.profile_name]:
 			sv_f_data = sv_f.read_text() + "\n" + f.read_text()
 			sv_f.write_text(sv_f_data)
 
-# Execute any user scripts for the profile.
+# Execute any user scripts for the profile
 for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 	if filename.endswith(".py"):
 		module = filename.split(".py")[0]
@@ -307,15 +308,16 @@ for pname in requested_plugins:
 		assert p["force_download"]["format"].startswith(".")
 		dest_filename = f"downloads/{pname}{p['force_download']['format']}"
 		urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
-		# TODO: Install the plugin as specified
+		# TODO
+		print("TODO: Install the plugin as specified")
 		pass
-	# Otherwise, try to get the smx plugin file's download link from the plugin's AlliedModders thread's webpage HTML
+	# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
 	else:
 		print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
 		response = session.get(p["thread_url"])
 		content = response.content.decode("latin")
 		# One of these ought to work at least some of the time
-		# A. Try to get an attachment
+		# A. Try to get an attachment; we currently only look for a zip
 		attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
 		if len(attachment_urls_escaped) > 1:
 			error = f"\nERROR: Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}"
@@ -328,6 +330,8 @@ for pname in requested_plugins:
 			attachment_url = html.unescape(attachment_url_escaped)
 			print(f"\tGot download URL from thread: {attachment_url}")
 			urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+			with zipfile.ZipFile(f"downloads/{pname}.zip", "r") as f:
+				f.extractall(f"container-data/{container_name}/tf/")
 		# B. No attachments found; try to get the plugin as compiled from source
 		else:
 			print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
