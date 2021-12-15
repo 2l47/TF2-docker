@@ -117,6 +117,7 @@
 			"force_download": {
 				"url": "https://gitlab.com/nanochip/votealltalk/-/archive/master/votealltalk-master.zip?path=addons",
 				"format": ".zip",
+				"strip_leading_dir": true,
 				"install_location": "tf/"
 			}
 		},
@@ -128,6 +129,7 @@
 			"force_download": {
 				"url": "https://gitlab.com/nanochip/votescramble/-/archive/master/votescramble-master.zip?path=addons",
 				"format": ".zip",
+				"strip_leading_dir": true,
 				"install_location": "tf/"
 			}
 		}

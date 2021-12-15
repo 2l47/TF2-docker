@@ -308,6 +308,7 @@ for pname in requested_plugins:
 		url = p["force_download"]["url"]
 		format = p['force_download']['format']
 		assert format.startswith(".")
+		strip_leading_dir = p["force_download"].get("strip_leading_dir")
 		install_location = p["force_download"]["install_location"]
 
 		# We're using this legacy urllib method because it lets us specify a destination filename easily
@@ -316,7 +317,7 @@ for pname in requested_plugins:
 
 		# Handle installation
 		if format == ".zip":
-			unzip(dest_filename, f"container-data/{container_name}/{install_location}")
+			unzip(dest_filename, f"container-data/{container_name}/{install_location}", strip_leading_dir=strip_leading_dir)
 		else:
 			# TODO
 			print("TODO: Install the plugin as specified")

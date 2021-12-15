@@ -5,4 +5,5 @@ sbpp.ini
 container-data/
 container-passwords/
 downloads/
+temp/
 profiles/variety/direct-copy/varietyd-webhook-url.txt
