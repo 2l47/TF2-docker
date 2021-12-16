@@ -274,6 +274,28 @@ for pname in plugins_to_enable:
 		print(f"WARNING: Path does not exist: {p}")
 os.chdir(repo)
 
+# Disable the specified plugins included with SourceMod
+plugins_to_disable = plugins["disable-plugins"].split(",")
+repo = os.getcwd()
+os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/")
+for pname in plugins_to_disable:
+	# Remove leading spaces from the plugin name
+	pname = pname.strip()
+	if pname == "":
+		if len(plugins_to_disable) == 1:
+			print("No plugins to disable...")
+		else:
+			print("WARNING: Extra comma in disable-plugins?")
+		continue
+	print(f"Disabling plugin: {pname}")
+	s_fname = f"{pname}.smx"
+	p = pathlib.PosixPath(s_fname)
+	if p.exists():
+		p.unlink()
+	else:
+		print(f"WARNING: Path does not exist: {p}")
+os.chdir(repo)
+
 # Load our plugin database.
 with open("plugins.json") as f:
 	plugin_db = json.load(f)
