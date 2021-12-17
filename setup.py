@@ -444,10 +444,10 @@ container.start()
 
 # The last thing we have to do is reconfigure plugins.
 # Config files will have been generated for newly-installed plugins once the server is online.
-print("Waiting for the server to come online so we can reconfigure any plugins...")
+print("\nWaiting for the server to come online so we can reconfigure any plugins...")
 waitForServer(args.host_ip, int(srcds["SRCDS_PORT"]))
 
-print(f"\n{'=' * 8} Reconfiguring plugins... {'=' * 8}")
+print(f"\n{'=' * 8} Reconfiguring plugins... {'=' * 8}\n")
 p = pathlib.PosixPath(f"{profile_prefix}/reconfigure/")
 for f in p.glob("**/*"):
 	if f.is_file():
@@ -470,7 +470,7 @@ for f in p.glob("**/*"):
 
 # ======== Yeet ========
 
-print(f"\n{'=' * 8} Configuration complete, restarting the container... {'=' * 8}")
+print(f"\n{'=' * 8} Configuration complete, restarting the container... {'=' * 8}\n")
 container.restart()
 
 if not args.no_wait:

@@ -76,17 +76,20 @@ def untar(filename, mode="r:gz", expect_root_regex=None):
 # Unzips the zipfile somewhere
 def unzip(filename, where, strip_leading_dir=False):
 	with zipfile.ZipFile(filename, "r") as zip:
-		# Print debug info
-		for filename in zip.infolist():
-			print(f"info: {filename}")
-		for filename in zip.namelist():
-			print(f"name: {filename}")
-
 		# Get the archive root
 		if strip_leading_dir:
 			root_info = zip.infolist()[0]
 			root = root_info.filename
-			assert root.endswith("/")
+			try:
+				assert root.endswith("/")
+			except AssertionError:
+				print("Failed to determine zip archive root directory! Hierarchy follows:")
+				# Print debug info
+				for filename in zip.infolist():
+					print(f"info: {filename}")
+				for filename in zip.namelist():
+					print(f"name: {filename}")
+				raise
 			print(f"Got zip root directory: {root}")
 
 		# Make sure temp is empty

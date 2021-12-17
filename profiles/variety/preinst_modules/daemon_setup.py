@@ -10,7 +10,8 @@ def execute(container, user, command):
 
 # Called by setup.py
 def loader(profile_name, region_name, instance_number, container):
-	print(f"(crontab_setup.py) Hello, world! Profile name {profile_name}, region {region_name}, instance number {instance_number}.")
+	print(f"\n{'=' * 8} Installing varietyd... {'=' * 8}")
+	print(f"\n(daemon_setup.py) Hello, world! Profile name {profile_name}, region {region_name}, instance number {instance_number}.")
 
 	# Where is the data for this container stored?
 	container_data = f"container-data/tf2-{profile_name}-{region_name}-{instance_number}"
