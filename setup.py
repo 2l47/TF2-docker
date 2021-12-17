@@ -252,7 +252,7 @@ for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 # ======== Install server plugins ========
 
 if config.has_section("plugins"):
-	print(f"\n{'=' * 8} Installing plugins... {'=' * 8}")
+	print(f"\n{'=' * 8} Installing plugins... {'=' * 8}\n")
 	plugins = config["plugins"]
 
 	# Deal with special keys first
