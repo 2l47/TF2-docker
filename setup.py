@@ -6,7 +6,7 @@ __ghrepo = "https://github.com/2l47/TF2-docker"
 import argparse
 import configparser
 import docker
-from helpers import genpass, normalize_permissions, untar, unzip
+from helpers import genpass, normalize_permissions, untar, unzip, waitForServer
 import html
 import json
 import os
@@ -14,6 +14,7 @@ import pathlib
 import re
 import requests
 import shutil
+import subprocess
 import urllib.parse
 import urllib.request
 
@@ -40,6 +41,10 @@ parser.add_argument("--overwrite", "-o", action="store_true", help="Stops and re
 parser.add_argument("--erase", "-e", action="store_true", help="Erases preexisting container data directories with the same name.")
 parser.add_argument("--force-reuse", "-f", action="store_true", help="Forces reuse of existing container data directories. A bad idea due to repeated cfg appending.")
 parser.add_argument("--skip-apt", "-s", action="store_true", help="Skips upgrading the base system and installing extra packages. Will cause issues with some profiles.")
+parser.add_argument("--no-wait", "-n", action="store_true", help="Skips waiting for the server to come online after everything is completed.")
+
+# Other options
+parser.add_argument("--host-ip", type=str, help="Optional value that overrides the auto-detected host IP address.")
 
 # Parse the command-line arguments and make sure they're sane
 args = parser.parse_args()
@@ -49,6 +54,11 @@ assert args.instance_number > 0
 # Define the container name based on the profile name, server region, and instance number
 assert args.profile_name.isalpha() and args.profile_name.islower()
 container_name = f"tf2-{args.profile_name}-{args.region_name}-{args.instance_number}"
+
+# We use the host IP address to check if the server has been brought up later on
+if not args.host_ip:
+	args.host_ip = subprocess.check_output("hostname -I | cut -d ' ' -f 1", shell=True).decode().strip()
+	print(f"Auto-detected your public IP address as {args.host_ip}. If this is incorrect, override the value with the --host-ip option.\n")
 
 
 # ======== Prepare the container configuration ========
@@ -200,11 +210,6 @@ def edit(cfg, pattern, repl):
 	assert not cfg.startswith("/")
 	p = pathlib.Path(f"{data_directory}/{cfg}")
 	p.write_text(re.sub(pattern, repl, p.read_text(), flags=re.M))
-
-
-# TODO: This one guesses at what you want to change
-def dynamic_edit(cfg, value):
-	pass
 
 
 # ======== Configure the server ========
@@ -387,6 +392,8 @@ for pname in requested_plugins:
 				raise SystemExit(f"ERROR: Compiler list index selection ({compiler_selection}) out of range ({len(plugin_compiler_urls)})")
 
 
+# ======== Install SourceBans++ ========
+
 # If the user requested SourceBans++ installation, go ahead and attempt it.
 if args.with_sbpp:
 	# Make sure sbpp.ini exists. If it does, the user has run ./sbpp-installer.py, although that doesn't necessarily mean it was successful. Geronimo!
@@ -429,8 +436,42 @@ if args.with_sbpp:
 	edit("tf/addons/sourcemod/configs/databases.cfg", r'}\n*\Z', db_cfg)
 	print("Success!")
 
+print(f"\n{'=' * 8} Plugin installation complete, starting the container... {'=' * 8}")
+container.start()
+
+
+# ======== Reconfigure server plugins ========
+
+# The last thing we have to do is reconfigure plugins.
+# Config files will have been generated for newly-installed plugins once the server is online.
+print("Waiting for the server to come online so we can reconfigure any plugins...")
+waitForServer(args.host_ip, int(srcds["SRCDS_PORT"]))
+
+print(f"\n{'=' * 8} Reconfiguring plugins... {'=' * 8}")
+p = pathlib.PosixPath(f"{profile_prefix}/reconfigure/")
+for f in p.glob("**/*"):
+	if f.is_file():
+		# Load the file as-is
+		rel_path = f.relative_to(f"{profile_prefix}/reconfigure/")
+		sv_f = pathlib.PosixPath(f"{data_directory}/{rel_path}")
+		sv_f_as_is = sv_f.read_text()
+
+		# Conjure and write new contents
+		sv_f_data = sv_f_as_is
+		for line in f.read_text().split("\n"):
+			if line == "" or line.startswith("//"):
+				continue
+			print(f"Processing line from {f}: {line}")
+			key = line.split(" ")[0]
+			print(f"Got key \"{key}\", substituting matching lines")
+			sv_f_data = re.sub(f"^{key}.*", line, sv_f_data, flags=re.M)
+		sv_f.write_text(sv_f_data)
+
 
 # ======== Yeet ========
 
-print(f"\n{'=' * 8} Configuration complete, starting the container! {'=' * 8}")
-container.start()
+print(f"\n{'=' * 8} Configuration complete, restarting the container... {'=' * 8}")
+container.restart()
+
+if not args.no_wait:
+	waitForServer(args.host_ip, int(srcds["SRCDS_PORT"]))

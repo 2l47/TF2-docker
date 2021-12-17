@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import a2s
 import os
 import pathlib
 import re
 import shutil
+import socket
 import subprocess
 import tarfile
+import time
 from xkcdpass import xkcd_password as xp
 import zipfile
 
@@ -103,3 +106,14 @@ def unzip(filename, where, strip_leading_dir=False):
 			print("Not stripping leading dir from zip archive contents")
 			# Just copy all of the zipfile's contents in
 			shutil.copytree("temp/", where, dirs_exist_ok=True)
+
+
+# Waits for the given server to come online
+def waitForServer(ip, port):
+	while True:
+		try:
+			r = a2s.info((ip, port))
+			print("Server is online!\n")
+			break
+		except socket.timeout:
+			time.sleep(1)

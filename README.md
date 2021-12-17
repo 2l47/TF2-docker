@@ -84,4 +84,8 @@ In your profile, make a folder named `append-to`. Any text in these files will b
 
 #### Editing files in the container upon installation
 
-I'll implement this later if I really need to.
+If you just want to change a couple of cvars, you could put them in `profiles/yourcustomprofile/append-to/tf/cfg/server.cfg`, either in the form of `mycvar myvalue` or `sm_cvar mycvar myvalue`, depending on which you may want/need. However, if you want to keep things more organized, like if you're changing a bunch of plugin configurations, you should use the `reconfigure` folder.
+
+In your profile, make a folder named `reconfigure`. The functionality is similar to `append-to`, but instead of appending text, setup.py looks for lines in the auto-generated configs starting with the "key" and replaces them with the line from the file in the `reconfigure` folder. For an example, see `profiles/default/reconfigure/tf/cfg/server.cfg`.
+
+For more fine-grained control, consider writing a preinst_module instead (undocumented, see `profiles/default/preinst_modules/example_module.py` for an example).
