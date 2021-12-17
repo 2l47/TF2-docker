@@ -251,145 +251,152 @@ for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 
 # ======== Install server plugins ========
 
-print(f"\n{'=' * 8} Installing plugins... {'=' * 8}")
-plugins = config["plugins"]
+if config.has_section("plugins"):
+	print(f"\n{'=' * 8} Installing plugins... {'=' * 8}")
+	plugins = config["plugins"]
 
-# Deal with special keys first
-# TODO: RGL goes here or something... maybe a preinst-module would be better for fetching maps..?
+	# Deal with special keys first
+	# TODO: RGL goes here or something... maybe a preinst-module would be better for fetching maps..?
 
-# Enable the specified plugins included with SourceMod but which are disabled by default
-plugins_to_enable = plugins["enable-plugins"].split(",")
-repo = os.getcwd()
-os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
-for pname in plugins_to_enable:
-	# Remove leading spaces from the plugin name
-	pname = pname.strip()
-	if pname == "":
-		if len(plugins_to_enable) == 1:
-			print("No plugins to enable...")
-		else:
-			print("WARNING: Extra comma in enable-plugins?")
-		continue
-	print(f"Enabling plugin: {pname}")
-	s_fname = f"{pname}.smx"
-	p = pathlib.PosixPath(s_fname)
-	if p.exists():
-		p.replace(f"../{s_fname}")
-	else:
-		print(f"WARNING: Path does not exist: {p}")
-os.chdir(repo)
+	# Enable the specified plugins included with SourceMod but which are disabled by default
+	plugins_to_enable = plugins.get("enable-plugins")
+	if plugins_to_enable:
+		plugins_to_enable = plugins_to_enable.split(",")
+		repo = os.getcwd()
+		os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
+		for pname in plugins_to_enable:
+			# Remove leading spaces from the plugin name
+			pname = pname.strip()
+			if pname == "":
+				if len(plugins_to_enable) == 1:
+					print("No plugins to enable...")
+				else:
+					print("WARNING: Extra comma in enable-plugins?")
+				continue
+			print(f"Enabling plugin: {pname}")
+			s_fname = f"{pname}.smx"
+			p = pathlib.PosixPath(s_fname)
+			if p.exists():
+				p.replace(f"../{s_fname}")
+			else:
+				print(f"WARNING: Path does not exist: {p}")
+		os.chdir(repo)
 
-# Disable the specified plugins included with SourceMod
-plugins_to_disable = plugins["disable-plugins"].split(",")
-repo = os.getcwd()
-os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/")
-for pname in plugins_to_disable:
-	# Remove leading spaces from the plugin name
-	pname = pname.strip()
-	if pname == "":
-		if len(plugins_to_disable) == 1:
-			print("No plugins to disable...")
-		else:
-			print("WARNING: Extra comma in disable-plugins?")
-		continue
-	print(f"Disabling plugin: {pname}")
-	s_fname = f"{pname}.smx"
-	p = pathlib.PosixPath(s_fname)
-	if p.exists():
-		p.unlink()
-	else:
-		print(f"WARNING: Path does not exist: {p}")
-os.chdir(repo)
+	# Disable the specified plugins included with SourceMod
+	plugins_to_disable = plugins.get("disable-plugins")
+	if plugins_to_disable:
+		plugins_to_disable = plugins_to_disable.split(",")
+		repo = os.getcwd()
+		os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/")
+		for pname in plugins_to_disable:
+			# Remove leading spaces from the plugin name
+			pname = pname.strip()
+			if pname == "":
+				if len(plugins_to_disable) == 1:
+					print("No plugins to disable...")
+				else:
+					print("WARNING: Extra comma in disable-plugins?")
+				continue
+			print(f"Disabling plugin: {pname}")
+			s_fname = f"{pname}.smx"
+			p = pathlib.PosixPath(s_fname)
+			if p.exists():
+				p.unlink()
+			else:
+				print(f"WARNING: Path does not exist: {p}")
+		os.chdir(repo)
 
-# Load our plugin database.
-with open("plugins.json") as f:
-	plugin_db = json.load(f)
+	# Load our plugin database.
+	with open("plugins.json") as f:
+		plugin_db = json.load(f)
 
-# Set the user agent for urllib.request.urlretrieve(), used for file downloads
-opener = urllib.request.build_opener()
-opener.addheaders = [("User-Agent", f"setup.py/{__version__} ({__ghrepo})")]
-urllib.request.install_opener(opener)
+	# Set the user agent for urllib.request.urlretrieve(), used for file downloads
+	opener = urllib.request.build_opener()
+	opener.addheaders = [("User-Agent", f"setup.py/{__version__} ({__ghrepo})")]
+	urllib.request.install_opener(opener)
 
-# Now download and install the plugins requested.
-session = requests.Session()
-# Set the user agent for the session, used for requesting webpages
-session.headers.update({"User-Agent": f"setup.py/{__version__} ({__ghrepo})"})
-requested_plugins = plugins["requested-plugins"].split(",")
-for pname in requested_plugins:
-	# Remove leading spaces from the plugin name
-	pname = pname.strip()
-	if pname == "":
-		if len(requested_plugins) == 1:
-			print("No plugins requested...")
-		else:
-			print("WARNING: Extra comma in requested-plugins?")
-		continue
-	print(f"\nDownloading and installing plugin: {pname}")
-	# Get the plugin entry
-	p = plugin_db["plugins"][pname]
-	# Directly download the plugin from the specified URL and install it as specified
-	if "force_download" in p:
-		print("\tDownloading and installing according to plugins.json...")
+	# Now download and install the plugins requested.
+	session = requests.Session()
+	# Set the user agent for the session, used for requesting webpages
+	session.headers.update({"User-Agent": f"setup.py/{__version__} ({__ghrepo})"})
+	requested_plugins = plugins.get("requested-plugins")
+	if requested_plugins:
+		requested_plugins = requested_plugins.split(",")
+		for pname in requested_plugins:
+			# Remove leading spaces from the plugin name
+			pname = pname.strip()
+			if pname == "":
+				if len(requested_plugins) == 1:
+					print("No plugins requested...")
+				else:
+					print("WARNING: Extra comma in requested-plugins?")
+				continue
+			print(f"\nDownloading and installing plugin: {pname}")
+			# Get the plugin entry
+			p = plugin_db["plugins"][pname]
+			# Directly download the plugin from the specified URL and install it as specified
+			if "force_download" in p:
+				print("\tDownloading and installing according to plugins.json...")
 
-		# Grab plugin download configuration values
-		url = p["force_download"]["url"]
-		format = p['force_download']['format']
-		assert format.startswith(".")
-		strip_leading_dir = p["force_download"].get("strip_leading_dir")
-		install_location = p["force_download"]["install_location"]
+				# Grab plugin download configuration values
+				url = p["force_download"]["url"]
+				format = p['force_download']['format']
+				assert format.startswith(".")
+				strip_leading_dir = p["force_download"].get("strip_leading_dir")
+				install_location = p["force_download"]["install_location"]
 
-		# We're using this legacy urllib method because it lets us specify a destination filename easily
-		dest_filename = f"downloads/{pname}{format}"
-		urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
+				# We're using this legacy urllib method because it lets us specify a destination filename easily
+				dest_filename = f"downloads/{pname}{format}"
+				urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
 
-		# Handle installation
-		if format == ".zip":
-			unzip(dest_filename, f"container-data/{container_name}/{install_location}", strip_leading_dir=strip_leading_dir)
-		else:
-			# TODO
-			print("TODO: Install the plugin as specified")
-	# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
-	else:
-		print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
-		response = session.get(p["thread_url"])
-		content = response.content.decode("latin")
-		# One of these ought to work at least some of the time
-		# A. Try to get an attachment; we currently only look for a zip
-		attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
-		if len(attachment_urls_escaped) > 1:
-			error = f"\nERROR: Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}"
-			error += f"\nPlease create an issue at: {gh_repo}"
-			raise SystemExit(error)
-		elif len(attachment_urls_escaped) == 1:
-			# Note that this variable is just in the singular form
-			attachment_url_escaped = attachment_urls_escaped[0]
-			print(f"\tGot escaped download URL from thread: {attachment_url_escaped}")
-			attachment_url = html.unescape(attachment_url_escaped)
-			print(f"\tGot download URL from thread: {attachment_url}")
-			urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
-			unzip(f"downloads/{pname}.zip", f"container-data/{container_name}/tf/")
-		# B. No attachments found; try to get the plugin as compiled from source
-		else:
-			print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
-			plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
-			# Default selection
-			compiler_selection = 0
-			# User specified selection
-			if "force_compiler_selection" in p:
-				compiler_selection = p["force_compiler_selection"]
-			# If the user doesn't specify and there's more than once choice, bail out
-			elif len(plugin_compiler_urls) > 1:
-				error = f"\nERROR: Found {len(plugin_compiler_urls)} plugin compiler URLs (expected 1): {plugin_compiler_urls}"
-				error += "\nHint: You can specify an index to select in plugins.json with the field \"force_compiler_selection\"."
-				raise SystemExit(error)
-			# Try to retrieve the requested index
-			try:
-				# Note that this variable is just in the singular form
-				plugin_compiler_url = plugin_compiler_urls[compiler_selection]
-				print(f"\tGot plugin compiler URL from thread: {plugin_compiler_url}")
-				urllib.request.urlretrieve(plugin_compiler_url, f"downloads/{pname}.smx")
-			except IndexError:
-				raise SystemExit(f"ERROR: Compiler list index selection ({compiler_selection}) out of range ({len(plugin_compiler_urls)})")
+				# Handle installation
+				if format == ".zip":
+					unzip(dest_filename, f"container-data/{container_name}/{install_location}", strip_leading_dir=strip_leading_dir)
+				else:
+					# TODO
+					print("TODO: Install the plugin as specified")
+			# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
+			else:
+				print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
+				response = session.get(p["thread_url"])
+				content = response.content.decode("latin")
+				# One of these ought to work at least some of the time
+				# A. Try to get an attachment; we currently only look for a zip
+				attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
+				if len(attachment_urls_escaped) > 1:
+					error = f"\nERROR: Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}"
+					error += f"\nPlease create an issue at: {gh_repo}"
+					raise SystemExit(error)
+				elif len(attachment_urls_escaped) == 1:
+					# Note that this variable is just in the singular form
+					attachment_url_escaped = attachment_urls_escaped[0]
+					print(f"\tGot escaped download URL from thread: {attachment_url_escaped}")
+					attachment_url = html.unescape(attachment_url_escaped)
+					print(f"\tGot download URL from thread: {attachment_url}")
+					urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+					unzip(f"downloads/{pname}.zip", f"container-data/{container_name}/tf/")
+				# B. No attachments found; try to get the plugin as compiled from source
+				else:
+					print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
+					plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
+					# Default selection
+					compiler_selection = 0
+					# User specified selection
+					if "force_compiler_selection" in p:
+						compiler_selection = p["force_compiler_selection"]
+					# If the user doesn't specify and there's more than once choice, bail out
+					elif len(plugin_compiler_urls) > 1:
+						error = f"\nERROR: Found {len(plugin_compiler_urls)} plugin compiler URLs (expected 1): {plugin_compiler_urls}"
+						error += "\nHint: You can specify an index to select in plugins.json with the field \"force_compiler_selection\"."
+						raise SystemExit(error)
+					# Try to retrieve the requested index
+					try:
+						# Note that this variable is just in the singular form
+						plugin_compiler_url = plugin_compiler_urls[compiler_selection]
+						print(f"\tGot plugin compiler URL from thread: {plugin_compiler_url}")
+						urllib.request.urlretrieve(plugin_compiler_url, f"downloads/{pname}.smx")
+					except IndexError:
+						raise SystemExit(f"ERROR: Compiler list index selection ({compiler_selection}) out of range ({len(plugin_compiler_urls)})")
 
 
 # ======== Install SourceBans++ ========
