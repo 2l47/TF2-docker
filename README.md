@@ -25,9 +25,9 @@ Run the TF2 docker container setup script to see available options: `./setup.py 
 
 ## Setup Examples
 
-1. This example will set up a basic TF2 server using the "default" profile, which specifies that random crits will be disabled, spray delay time will be set to zero, and voice command ("Medic!") delays will be reduced to a minimum.
+1. This example will set up a basic TF2 server using the "example" profile, which specifies that random crits will be disabled, spray delay time will be set to zero, and voice command ("Medic!") delays will be reduced to a minimum.
 
-`./setup.py --region syrupland --instance-number 1`
+`./setup.py --region syrupland --instance-number 1 --profile-name example`
 
 2. This example will set up a TF2 server suitable for playing a competitive [RGL.gg](https://rgl.gg/) match. (Note: the supplied profile is incomplete at the moment)
 
@@ -69,7 +69,7 @@ Note: When "SRCDS_RCONPW" is set to "random" (the default), a randomly generated
 
 ### Creating custom configurations
 
-For examples, look at the "default" profile. It copies the files `mapcycle.txt` and `motd.txt` into the server's `cfg` folder using the `direct-copy` folder, and appends some options to the `server.cfg` using the `append-to` folder.
+For examples, look at the "example" profile. It copies the file `motd.txt` into the server's `cfg` folder using the `direct-copy` folder, and appends some options to the `server.cfg` using the `append-to` folder.
 
 
 #### Creating/replacing files in the container upon installation
@@ -86,6 +86,6 @@ In your profile, make a folder named `append-to`. Any text in these files will b
 
 If you just want to change a couple of cvars, you could put them in `profiles/yourcustomprofile/append-to/tf/cfg/server.cfg`, either in the form of `mycvar myvalue` or `sm_cvar mycvar myvalue`, depending on which you may want/need. However, if you want to keep things more organized, like if you're changing a bunch of plugin configurations, you should use the `reconfigure` folder.
 
-In your profile, make a folder named `reconfigure`. The functionality is similar to `append-to`, but instead of appending text, setup.py looks for lines in the auto-generated configs starting with the "key" and replaces them with the line from the file in the `reconfigure` folder. For an example, see `profiles/default/reconfigure/tf/cfg/server.cfg`.
+In your profile, make a folder named `reconfigure`. The functionality is similar to `append-to`, but instead of appending text, setup.py looks for lines in the auto-generated configs starting with the "key" and replaces them with the line from the file in the `reconfigure` folder. For an example, see `profiles/example/reconfigure/tf/cfg/server.cfg`.
 
-For more fine-grained control, consider writing a preinst_module instead (undocumented, see `profiles/default/preinst_modules/example_module.py` for an example).
+For more fine-grained control, consider writing a preinst_module instead (undocumented, see `profiles/example/preinst_modules/example_module.py` for an example).
