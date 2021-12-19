@@ -6,7 +6,7 @@ __ghrepo = "https://github.com/2l47/TF2-docker"
 import argparse
 import configparser
 import docker
-from helpers import genpass, normalize_permissions, untar, unzip, waitForServer
+from helpers import genpass, header, normalize_permissions, untar, unzip, waitForServer
 import html
 import json
 import os
@@ -185,20 +185,20 @@ for backlog in logs:
 		print(l)
 	if ready_message in lines:
 		break
-print(f"\n{'=' * 8} SRCDS installed! {'=' * 8}")
+header("SRCDS installed!", newlines=(1, 0))
 
 
 # ======== Update the base system ========
 
 if not args.skip_apt:
-	print(f"\n{'=' * 8} Upgrading the base system and installing extra packages... {'=' * 8}")
+	header("Upgrading the base system and installing extra packages...", newlines=(1, 0))
 	for command in ["apt update", "apt full-upgrade -y", "apt install net-tools procps vim -y", "apt autoremove --purge -y"]:
 		exit_code, output = container.exec_run(command, user="root")
 		print(f"{output.decode()}\n")
 		assert exit_code == 0
 
 # Go ahead and shutdown the server while we set things up.
-print(f"{'=' * 8} Killing the container for server configuration... {'=' * 8}")
+header("Killing the container for server configuration...")
 container.kill()
 
 
@@ -214,7 +214,7 @@ def edit(cfg, pattern, repl):
 
 # ======== Configure the server ========
 
-print(f"\n{'=' * 8} Starting configuration... {'=' * 8}")
+header("Starting configuration...", newlines=(1, 0))
 # The first thing to do is make the configured server name persistent.
 edit("tf/cfg/server.cfg", "^hostname.*", f"hostname {srcds['SRCDS_HOSTNAME']}")
 # Same thing for the rcon password
@@ -252,7 +252,7 @@ for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 # ======== Install server plugins ========
 
 if config.has_section("plugins"):
-	print(f"\n{'=' * 8} Installing plugins... {'=' * 8}\n")
+	header("Installing plugins...", newlines=(0, 1))
 	plugins = config["plugins"]
 
 	# Deal with special keys first
@@ -403,9 +403,9 @@ if config.has_section("plugins"):
 
 # If the user requested SourceBans++ installation, go ahead and attempt it.
 if args.with_sbpp:
+	header("Attempting SourceBans++ installation...", newlines=(2, 1))
 	# Make sure sbpp.ini exists. If it does, the user has run ./sbpp-installer.py, although that doesn't necessarily mean it was successful. Geronimo!
 	assert config.read("sbpp.ini") == ["sbpp.ini"]
-	print("\nAttempting SourceBans++ installation...")
 	# Figure out the latest version of SBPP.
 	response = session.get("https://github.com/sbpp/sourcebans-pp/releases")
 	# We need the plugin only...
@@ -420,7 +420,7 @@ if args.with_sbpp:
 	# Normalize permissions yes
 	normalize_permissions(extracted)
 	# Now copy it in and then delete the extracted files
-	shutil.copytree(extracted, f"container-data/{container_name}/tf/", dirs_exist_ok=True)
+	shutil.copytree(extracted, f"container-data/{container_name}/tf/addons/", dirs_exist_ok=True)
 	shutil.rmtree(extracted)
 	# Insert the SourceBans++ database configuration from sbpp.ini
 	# This formatting is as good as it's gonna get
@@ -443,7 +443,7 @@ if args.with_sbpp:
 	edit("tf/addons/sourcemod/configs/databases.cfg", r'}\n*\Z', db_cfg)
 	print("Success!")
 
-print(f"\n{'=' * 8} Plugin installation complete, starting the container... {'=' * 8}")
+header("Plugin installation complete, starting the container...", newlines=(2, 0))
 container.start()
 
 
@@ -454,7 +454,7 @@ container.start()
 print("\nWaiting for the server to come online so we can reconfigure any plugins...")
 waitForServer(args.host_ip, int(srcds["SRCDS_PORT"]))
 
-print(f"\n{'=' * 8} Reconfiguring plugins... {'=' * 8}\n")
+header("Reconfiguring plugins...", newlines=(1, 1))
 p = pathlib.PosixPath(f"{profile_prefix}/reconfigure/")
 for f in p.glob("**/*"):
 	if f.is_file():
@@ -474,10 +474,18 @@ for f in p.glob("**/*"):
 			sv_f_data = re.sub(f"^{key}.*", line, sv_f_data, flags=re.M)
 		sv_f.write_text(sv_f_data)
 
+if args.with_sbpp:
+	# Configure the SourceBans++ table prefix
+	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"DatabasePrefix"\t"sb"', f'"DatabasePrefix"\t"{config["sbpp"]["db-table-prefix"]}"')
+	# Tell SourceBans++ what the server ID is
+	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"ServerID"\t\t"-1"', f'"ServerID"\t\t"{args.instance_number}"')
+	# Set the SourceBans++ website URL
+	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"Website"\t\t\t"http://www.yourwebsite.net/"', f'"Website"\t\t\t"{config["sbpp"]["webpanel-url"]}"')
+
 
 # ======== Yeet ========
 
-print(f"\n{'=' * 8} Configuration complete, restarting the container... {'=' * 8}\n")
+header("Configuration complete, restarting the container...", newlines=(2, 1))
 container.restart()
 
 if not args.no_wait:

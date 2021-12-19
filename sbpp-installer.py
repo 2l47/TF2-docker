@@ -87,14 +87,14 @@ print(f"The webpanel URL will be set to {webpanel_url}.")
 
 print("\n\n======== Part 3: MariaDB Bind Address ========")
 
-bind_address = "127.0.0.1"
+bind_address = "172.17.0.1"
 print("\nIf you have multiple physical servers running TF2-docker (e.g. to serve different regions), you may want them all to connect to the same database running on this server.")
 print("If so, you will need to expose the database to the public internet (or alternatively, use tunneling or VLANs for the connection).")
 print("Although the database requires authentication, directly exposing it to the public internet carries significant security risks, so only do this if you know what you're doing.")
 print("(One might consider implementing an IP whitelist and dropping all other traffic to the database port.)")
 
 # Ask if the user is running a server cluster
-if prompt(f"\nMariaDB is currently set to bind to {bind_address}. Do you want to change the bind address? "):
+if prompt("\nMariaDB is currently set to bind to 172.17.0.1, which should only allow local TF2-docker servers to connect to the database. If you are running a server cluster, this should be your server's public IP address or otherwise instead. Do you want to change the bind address? "):
 	# Alright, let's figure out the bind address for MariaDB
 	if prompt(f"Your public IP address was noted as {host_ip}. Do you want to bind MariaDB to this address? "):
 		bind_address = host_ip
@@ -197,10 +197,13 @@ sbpp_inst.chmod(0o744)
 # Extract the webpanel archive
 tar = tarfile.open(dest_filename, mode="r:gz")
 tar.extractall("/var/www/html/sbpp/")
+# Delete the downloaded archive
+pathlib.PosixPath(dest_filename).unlink()
 # Set basic permissions manually since SBPP doesn't distribute a tarfile with permissions...
-normalize_permissions(sbpp_inst, directory_permissions=0o555, file_permissions=0o444, type_permissions={".php": 0o744})
+normalize_permissions(sbpp_inst, dir_permissions=0o555, file_permissions=0o444, type_permissions={".php": 0o744})
 # Now manually set quickstart-requested permissions, for the same reason...
-dir_permissions = {"config.php": 0o644, "demos": 0o644, "themes_c": 0o774, "images/games": 0o644, "images/maps": 0o644}
+# I don't know why they say to make images 644 when, being directories, they need to be 744 :/
+dir_permissions = {"config.php": 0o644, "demos": 0o644, "themes_c": 0o774, "images/games": 0o744, "images/maps": 0o744}
 for path, mode in dir_permissions.items():
 	p = pathlib.PosixPath(f"/var/www/html/sbpp/{path}")
 	if not p.exists():

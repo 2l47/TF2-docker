@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Just run ./install-dependencies.sh
+# Usage: Just run ./install-dependencies.sh
 
 
 # If the script was called with sudo, we'll want to give the calling user permissions rather than the user we're executing as
@@ -20,7 +20,10 @@ else
 fi
 
 # Install prerequisites
+sudo apt update
 sudo apt install docker-compose xkcdpass -y
+sudo apt install python3-pip
+sudo pip3 install --target /usr/lib/python3/dist-packages python-a2s
 
 # Give the calling user access to docker
 sudo usermod --append --groups docker $DOCKER_USER

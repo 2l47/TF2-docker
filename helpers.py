@@ -34,6 +34,13 @@ def genpass():
 	return xp.generate_xkcdpassword(xp.generate_wordlist(wordfile=xp.locate_wordfile()), numwords=4, delimiter="-")
 
 
+# Prints a header
+def header(text, newlines=(0, 0)):
+	nl_prefix = "\n" * newlines[0]
+	nl_suffix = "\n" * newlines[1]
+	print(f"{nl_prefix}{'=' * 8} {text} {'=' * 8}{nl_suffix}")
+
+
 # Normalizes permissions recursively on a directory
 def normalize_permissions(path_obj, dir_permissions=0o755, file_permissions=0o644, type_permissions={}):
 	assert type(path_obj) == pathlib.PosixPath
@@ -44,7 +51,7 @@ def normalize_permissions(path_obj, dir_permissions=0o755, file_permissions=0o64
 			f.chmod(file_permissions)
 			for extension in type_permissions:
 				if f.name.endswith(extension):
-					f.chmod(types[extension])
+					f.chmod(type_permissions[extension])
 					break
 
 

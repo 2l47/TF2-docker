@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from helpers import header
+
+
 
 # Helper function that makes sure commands execute successfully
 def execute(container, user, command):
@@ -10,7 +13,7 @@ def execute(container, user, command):
 
 # Called by setup.py
 def loader(profile_name, region_name, instance_number, container):
-	print(f"\n{'=' * 8} Installing varietyd... {'=' * 8}")
+	header("Installing varietyd...", newlines=(2, 0))
 	print(f"\n(daemon_setup.py) Hello, world! Profile name {profile_name}, region {region_name}, instance number {instance_number}.")
 
 	# Where is the data for this container stored?
