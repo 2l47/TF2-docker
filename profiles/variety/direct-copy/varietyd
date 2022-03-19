@@ -92,8 +92,7 @@ def main():
 	autorotate()
 
 	# Schedule autorotate to switch rotations every day at 6 AM
-	#schedule.every().day.at("06:00").do(autorotate)
-	schedule.every().minute.do(autorotate)
+	schedule.every().day.at("06:00").do(autorotate)
 
 	# Run forever-ish
 	while True:
