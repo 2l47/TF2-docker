@@ -47,9 +47,9 @@ def loader(profile_name, region_name, instance_number, container):
 	# Just gotta start the container again, first.
 	container.start()
 
-	# varietyd requires the python modules "python-daemon", "requests", and "schedule"
+	# varietyd requires the following python modules
 	execute(container, "root", "apt install python3-pip -y")
-	execute(container, "steam", "pip3 install python-daemon requests schedule")
+	execute(container, "steam", "pip3 install python-daemon requests schedule setproctitle")
 
 	# The daemon's already been copied into /home/steam/tf-dedicated/
 	# Just edit the entry script to spawn it

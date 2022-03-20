@@ -6,6 +6,7 @@ import os
 import pprint
 import requests
 import schedule
+import setproctitle
 import signal
 import subprocess
 import time
@@ -111,6 +112,8 @@ context = daemon.DaemonContext(detach_process=True, files_preserve=files_preserv
 context.signal_map = { signal.SIGTERM: exitHandler }
 with context:
 	whSend("Entered daemon context")
+	# Set our process name
+	setproctitle.setproctitle("varietyd")
 	try:
 		main()
 	except Exception as ex:
