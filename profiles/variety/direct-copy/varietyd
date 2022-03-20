@@ -4,11 +4,13 @@ import daemon
 import logging, logging.handlers
 import os
 import pprint
+import re
 import requests
 import schedule
 import setproctitle
 import signal
 import subprocess
+import textwrap
 import time
 import traceback
 
@@ -35,7 +37,8 @@ logging.basicConfig(
 	format = "[%(asctime)s] [%(levelname)s] [%(funcName)s:%(lineno)d] %(message)s",
 	datefmt = "%a %b %d @ %R:%S",
 	# The default level for loggers is WARNING instead of NOTSET like for handlers
-	level = logging.NOTSET,
+	# We use DEBUG instead of NOTSET here since we actually do log some extra data below DEBUG that we usually don't need to see
+	level = logging.DEBUG,
 	handlers = [stdout_handler, file_handler]
 )
 
@@ -46,19 +49,64 @@ logging.getLogger("urllib3").setLevel(logging.INFO)
 files_preserve = [stdout_handler.stream.fileno(), file_handler.stream.fileno()]
 
 
+# This regex will match a string up to the last instance of sentence-ending punctuation
+__pattern__ = re.compile(r".*[!\?\.]")
+
+# This function trims the string to the last complete portion within the character limit
+def trim(string, limit=80):
+	if len(string) <= limit:
+		return string
+	else:
+		stop = string.rfind("\n", 0, limit)
+		if stop != -1:
+			return string[:stop]
+		else:
+			# Use regex to find the most recent punctuation within the limit
+			match = __pattern__.match(string[:limit])
+			if match:
+				return match.group()
+			else:
+				# If there is no punctuation, return the string up to the last word
+				if " " in string:
+					return string[:string.rfind(" ", 0, limit)]
+				else:
+					# If there are no spaces in the string, just cut off at the character limit
+					return string[:limit]
+
+
+# Appends an ellipsis to the trimmed message, for Discord
+def discord_trim(message):
+	trimmed = trim(message, limit=2000)
+	if trimmed != message:
+		return trim(message, limit=1996) + "\n..."
+	else:
+		return trimmed
+
+
+# Indents the given string
+def indent(string):
+	return textwrap.indent(string, "\t")
+
+
 # Sends the given content to the Discord webhook
 def whSend(content, username="varietyd", attempt_num=1):
 	# All content should be prefixed with the container info
 	if attempt_num == 1:
 		content = f"[{container_info}] {content}"
+		logging.debug(f"whSend() fed content (actual length {len(content)}):")
+		logging.debug(f"{indent(trim(content))}")
 	# Tack on a header for retries
 	toSend = f"[RETRY {attempt_num - 1}] {content}" if attempt_num > 1 else content
+	# Log the full content below the DEBUG level
+	logging.log(9, f"Full content:\n{indent(content)}")
+	# Trim content to the last line that will fit in a message
+	toSend = discord_trim(toSend)
 	response = requests.post(f"{webhook_url}?wait=true", data={"content": toSend, "username": username})
 	# Make sure the message was sent; if not, retry up to 2 more times
 	json = response.json()
+	logging.debug(f"Webhook response:\n{indent(pprint.pformat(json, indent=4))}")
 	if "content" not in json:
 		logging.warning("Content wasn't sent via webhook!")
-		logging.debug(f"Webhook response:\n{pprint.pformat(json, indent=4)}")
 		if attempt_num < 3:
 			logging.info("Retrying webhook send...")
 			# If we were ratelimited, wait the specified amount of time
@@ -72,6 +120,8 @@ def whSend(content, username="varietyd", attempt_num=1):
 			whSend(content, username, attempt_num + 1)
 		else:
 			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{content}")
+	else:
+		logging.debug("whSend() success!\n")
 
 
 whSend("Container started, server starting...")
