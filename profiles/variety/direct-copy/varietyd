@@ -157,6 +157,32 @@ def exitHandler(signum, frame):
 	context.terminate(signum, frame)
 
 
+# If an instance is already running, terminate it and then truncate the log file.
+# This is generally only bound to occur during development.
+# Get this instance's PID first we don't kill ourselves lmao
+our_pid = os.getpid()
+for pid in os.listdir("/proc"):
+	if not pid.isdigit():
+		continue
+	if int(pid) == our_pid:
+		continue
+	with open(os.path.join("/proc", pid, "comm"), "r") as f:
+		if f.read().strip() == "varietyd":
+			# Send SIGTERM to the process and wait for it to exit
+			logging.warning(f"[{our_pid}] Sending SIGTERM to existing varietyd instance (PID {pid})!")
+			os.kill(int(pid), 15)
+			while True:
+				try:
+					os.kill(int(pid), 15)
+					logging.warning(f"[{our_pid}] Waiting for varietyd (PID {pid}) to die...")
+					time.sleep(1)
+				except ProcessLookupError:
+					break
+			# Now truncate the log file
+			logging.warning(f"[{our_pid}] Truncating log file...")
+			with open("varietyd.log", "w") as f:
+				f.truncate()
+
 # We have to explicitly set detach_process to True for the container because otherwise python-daemon will check and believe it's already detached
 context = daemon.DaemonContext(detach_process=True, files_preserve=files_preserve, working_directory=os.getcwd())
 context.signal_map = { signal.SIGTERM: exitHandler }
