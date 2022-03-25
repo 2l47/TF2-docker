@@ -6,7 +6,7 @@
 
 # Side note: subscribed_file_ids.txt might actually be completely unnecessary for TF2.
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __ghrepo = "https://github.com/2l47/TF2-docker"
 
 from datetime import date
@@ -58,7 +58,7 @@ def write_mapcycle(rotation):
 				workshop_id = map["workshop_id"]
 				mapcycle.write(f"workshop/{workshop_id}\n")
 			else:
-				raise SystemExit("Unknown map type")
+				raise SystemExit(f"Unknown map type: {map['type']}")
 
 
 # Check if rotations.json has been updated; if so, update workshop IDs
@@ -99,7 +99,7 @@ if previous_hash != current_hash:
 		f.write("\n".join(subscribed_file_ids))
 # As far as we know, rotations.json hasn't been updated.
 else:
-	print("regions.json doesn't appear to have been updated; not rewriting subscribed_file_ids.txt")
+	print("rotations.json doesn't appear to have been updated; not rewriting subscribed_file_ids.txt")
 
 
 # Just update the mapcycle now
