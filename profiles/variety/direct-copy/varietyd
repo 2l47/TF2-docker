@@ -34,7 +34,7 @@ with open("varietyd-webhook-url.txt") as f:
 stdout_handler = logging.StreamHandler()
 file_handler = logging.handlers.RotatingFileHandler("varietyd.log", maxBytes=1024 * 1024, backupCount=5)
 logging.basicConfig(
-	format = "[%(asctime)s] [%(levelname)s] [%(funcName)s:%(lineno)d] %(message)s",
+	format = "[%(asctime)s] [%(process)d: %(levelname)s] [%(funcName)s:%(lineno)d] %(message)s",
 	datefmt = "%a %b %d @ %R:%S",
 	# The default level for loggers is WARNING instead of NOTSET like for handlers
 	# We use DEBUG instead of NOTSET here since we actually do log some extra data below DEBUG that we usually don't need to see
@@ -101,7 +101,18 @@ def whSend(content, username="varietyd", attempt_num=1):
 	logging.log(8, f"Full content:\n{indent(content)}")
 	# Trim content to the last line that will fit in a message
 	toSend = discord_trim(toSend)
-	response = requests.post(f"{webhook_url}?wait=true", data={"content": toSend, "username": username})
+	try:
+		response = requests.post(f"{webhook_url}?wait=true", data={"content": toSend, "username": username})
+	except requests.exceptions.ConnectionError:
+		logging.warning("Connection error while sending to webhook!")
+		if attempt_num < 3:
+			time.sleep(1)
+			logging.info("Retrying webhook send...")
+			whSend(content, username, attempt_num + 1)
+		else:
+			logging.error(f"Failed to send to webhook! Username {username}, Content:")
+			logging.error(f"{indent(content)}\n")
+		return
 	# Make sure the message was sent; if not, retry up to 2 more times
 	json = response.json()
 	logging.log(9, f"Webhook response:\n{indent(pprint.pformat(json, indent=4))}")
@@ -119,7 +130,7 @@ def whSend(content, username="varietyd", attempt_num=1):
 				time.sleep(1)
 			whSend(content, username, attempt_num + 1)
 		else:
-			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{content}\n")
+			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{indent(content)}\n")
 	else:
 		logging.debug("whSend() success!\n")
 
@@ -170,10 +181,11 @@ for pid in os.listdir("/proc"):
 		if f.read().strip() == "varietyd":
 			# Send SIGTERM to the process and wait for it to exit
 			logging.warning(f"[{our_pid}] Sending SIGTERM to existing varietyd instance (PID {pid})!")
-			os.kill(int(pid), 15)
+			os.kill(int(pid), signal.SIGTERM)
 			while True:
 				try:
-					os.kill(int(pid), 15)
+					# Just send an unhandled signal so we don't trigger repeated "terminating!" messages to the webhook
+					os.kill(int(pid), signal.SIGPWR)
 					logging.warning(f"[{our_pid}] Waiting for varietyd (PID {pid}) to die...")
 					time.sleep(1)
 				except ProcessLookupError:
