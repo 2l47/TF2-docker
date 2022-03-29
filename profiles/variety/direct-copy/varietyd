@@ -87,9 +87,10 @@ def discord_trim(message):
 		return trimmed
 
 
-# Indents the given string
-def indent(string):
-	return textwrap.indent(string, "\t")
+# Logs an indented string on the given logging level
+def log_data(data, level=logging.DEBUG):
+	for line in data.split("\n"):
+		logging.log(level, "\t" + line)
 
 
 # Sends the given content to the Discord webhook
@@ -97,12 +98,13 @@ def whSend(content, username="varietyd", attempt_num=1):
 	# All content should be prefixed with the container info
 	if attempt_num == 1:
 		content = f"[{container_info}:{our_pid}] {content}"
-		logging.debug(f"whSend() fed content (actual length {len(content)}):")
-		logging.debug(f"{indent(trim(content))}")
+		logging.debug(f"Msg (len {len(content)}) preview:")
+		log_data(trim(content))
 	# Tack on a header for retries
 	toSend = f"[RETRY {attempt_num - 1}] {content}" if attempt_num > 1 else content
 	# Log the full content
-	logging.log(8, f"Full content:\n{indent(content)}")
+	logging.log(8, "Full content:")
+	log_data(content, level=8)
 	# Trim content to the last line that will fit in a message
 	toSend = discord_trim(toSend)
 	try:
@@ -115,11 +117,12 @@ def whSend(content, username="varietyd", attempt_num=1):
 			whSend(content, username, attempt_num + 1)
 		else:
 			logging.error(f"Failed to send to webhook! Username {username}, Content:")
-			logging.error(f"{indent(content)}\n")
+			log_data(content, level=logging.ERROR)
 		return
 	# Make sure the message was sent; if not, retry up to 2 more times
 	json = response.json()
-	logging.log(9, f"Webhook response:\n{indent(pprint.pformat(json, indent=4))}")
+	logging.log(9, "Webhook response:")
+	log_data(pprint.pformat(json, indent=4), level=9)
 	if "content" not in json:
 		logging.warning("Content wasn't sent via webhook!")
 		if attempt_num < 3:
@@ -134,9 +137,10 @@ def whSend(content, username="varietyd", attempt_num=1):
 				time.sleep(1)
 			whSend(content, username, attempt_num + 1)
 		else:
-			logging.error(f"Failed to send to webhook! Username {username}, Content:\n{indent(content)}\n")
+			logging.error(f"Failed to send to webhook! Username {username}, Content:")
+			log_data(content, level=logging.ERROR)
 	else:
-		logging.debug("whSend() success!\n")
+		logging.debug("Success!\n")
 
 
 whSend("Container started, server starting...")
