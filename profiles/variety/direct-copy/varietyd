@@ -16,6 +16,10 @@ import traceback
 
 
 
+# Get this instance's PID first, for webhook messages and so we don't kill ourselves lmao
+our_pid = os.getpid()
+
+
 # Enter the TF2 server directory
 os.chdir(os.path.expanduser("~/tf-dedicated"))
 
@@ -92,7 +96,7 @@ def indent(string):
 def whSend(content, username="varietyd", attempt_num=1):
 	# All content should be prefixed with the container info
 	if attempt_num == 1:
-		content = f"[{container_info}] {content}"
+		content = f"[{container_info}:{our_pid}] {content}"
 		logging.debug(f"whSend() fed content (actual length {len(content)}):")
 		logging.debug(f"{indent(trim(content))}")
 	# Tack on a header for retries
@@ -170,8 +174,6 @@ def exitHandler(signum, frame):
 
 # If an instance is already running, terminate it and then truncate the log file.
 # This is generally only bound to occur during development.
-# Get this instance's PID first we don't kill ourselves lmao
-our_pid = os.getpid()
 for pid in os.listdir("/proc"):
 	if not pid.isdigit():
 		continue
@@ -180,18 +182,18 @@ for pid in os.listdir("/proc"):
 	with open(os.path.join("/proc", pid, "comm"), "r") as f:
 		if f.read().strip() == "varietyd":
 			# Send SIGTERM to the process and wait for it to exit
-			logging.warning(f"[{our_pid}] Sending SIGTERM to existing varietyd instance (PID {pid})!")
+			logging.warning(f"Sending SIGTERM to existing varietyd instance (PID {pid})!")
 			os.kill(int(pid), signal.SIGTERM)
 			while True:
 				try:
+					logging.warning(f"Waiting for varietyd (PID {pid}) to die...")
+					time.sleep(1)
 					# Just send an unhandled signal so we don't trigger repeated "terminating!" messages to the webhook
 					os.kill(int(pid), signal.SIGPWR)
-					logging.warning(f"[{our_pid}] Waiting for varietyd (PID {pid}) to die...")
-					time.sleep(1)
 				except ProcessLookupError:
 					break
 			# Now truncate the log file
-			logging.warning(f"[{our_pid}] Truncating log file...")
+			logging.warning(f"Truncating log file...")
 			with open("varietyd.log", "w") as f:
 				f.truncate()
 
