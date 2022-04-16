@@ -182,7 +182,7 @@ versions = re.findall(r'(?<=href=")/sbpp/sourcebans-pp/releases/download/[0-9.]+
 latest = versions[0]
 download_url = f"https://github.com/{latest}"
 # Download it.
-dest_filename = "sourcebans-pp-latest.plugin-only.tar.gz"
+dest_filename = "sourcebans-pp-latest.webpanel-only.tar.gz"
 urllib.request.urlretrieve(download_url, dest_filename)
 
 print("Installing SourceBans++ WebPanel...")
@@ -199,8 +199,8 @@ tar = tarfile.open(dest_filename, mode="r:gz")
 tar.extractall("/var/www/html/sbpp/")
 # Delete the downloaded archive
 pathlib.PosixPath(dest_filename).unlink()
-# Set basic permissions manually since SBPP doesn't distribute a tarfile with permissions...
-normalize_permissions(sbpp_inst, dir_permissions=0o555, file_permissions=0o444, type_permissions={".php": 0o744})
+# Set basic permissions manually since SBPP doesn't distribute tarfiles with normal permissions...
+normalize_permissions(sbpp_inst, dir_permissions=0o555, file_permissions=0o444, type_permissions={".php": 0o544})
 # Now manually set quickstart-requested permissions, for the same reason...
 # I don't know why they say to make images 644 when, being directories, they need to be 744 :/
 dir_permissions = {"config.php": 0o644, "demos": 0o644, "themes_c": 0o774, "images/games": 0o744, "images/maps": 0o744}

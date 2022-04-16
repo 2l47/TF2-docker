@@ -16,6 +16,9 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583",
 			"comment": "Prevents bind spamming"
 		},
+		"Auto SourceTV Recorder": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438"
+		},
 		"BanDisconnected": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1273254"
 		},
@@ -41,6 +44,24 @@
 			"requires": [
 				"SimpleChatProcessor"
 			]
+		},
+		"Discord API": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=292663",
+			"force_download": {
+				"url": "https://gitlab.com/Zipcore/Discord/-/archive/master/Discord-master.tar.gz",
+				"format": ".tar.gz",
+				"install_location": "tf/addons/sourcemod/"
+			},
+			"requires": [
+				"SteamWorks"
+			]
+		},
+		"Discord Forward": {
+			"force_download": {
+				"url": "https://github.com/sbpp/discord-forward/releases/latest/download/sbpp_discord.smx",
+				"format": ".smx",
+				"install_location": "tf/addons/sourcemod/plugins/"
+			}
 		},
 		"DoubleQuoteFix": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=271137"
@@ -84,6 +105,41 @@
 		"SM_Downloader": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=602270"
 		},
+		"SMJansson": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=184604",
+			"force_attachment_selection": [1, 2],
+			"force_extract_to": "tf/addons/sourcemod/extensions/"
+		},
+		"SourceBans++": {
+			"custom_install": {
+				"file_to_exec": "sbpp-plugin-installer.py"
+			},
+			"requires": [
+				"SourceBans++ Database Configuration"
+			],
+			"optional_features": {
+				"discord_logging": {
+					"requires": [
+						"Discord Forward",
+						"SteamWorks",
+						"SMJansson"
+					]
+				}
+			}
+		},
+		"SourceBans++ Database Configuration": {
+			"custom_install": {
+				"post_installation": true,
+				"file_to_exec": "configure-sbpp-database.py"
+			}
+		},
+		"SourceTVManager_sapphonie_fork": {
+			"force_download": {
+				"url": "https://github.com/sapphonie/sourcetvmanager/releases/latest/download/package.zip",
+				"format": ".zip",
+				"install_location": "tf/"
+			}
+		},
 		"SprayTrace": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=75480"
 		},
@@ -92,6 +148,30 @@
 				"url": "https://github.com/sapphonie/StAC-tf2/releases/latest/download/stac.zip",
 				"format": ".zip",
 				"install_location": "tf/addons/sourcemod/"
+			},
+			"optional_features": {
+				"discord_logging": {
+					"requires": [
+						"Discord API",
+						"StAC Discord Logging"
+					]
+				},
+				"stv_tick_logging": {
+					"requires": [
+						"SourceTVManager_sapphonie_fork"
+					]
+				}
+			}
+		},
+		"StAC Discord Logging": {
+			"custom_install": {
+				"post_installation": true,
+				"file_to_exec": "configure-stac-discord.py"
+			}
+		},
+		"SteamWorks": {
+			"custom_install": {
+				"file_to_exec": "steamworks-installer.py"
 			}
 		},
 		"tDetailWinPanel": {
@@ -103,7 +183,7 @@
 		},
 		"KickVoteImmunity": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1506666",
-			"force_compiler_selection": 0,
+			"force_compiler_selection": [0, 2],
 			"comment": "Causes TF2 player kick votes to obey SM immunity levels."
 		},
 		"TidyChat": {

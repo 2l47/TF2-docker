@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 
-__version__ = "0.3.0"
-__ghrepo = "https://github.com/2l47/TF2-docker"
-
 import argparse
 import configparser
 import docker
-from helpers import genpass, header, normalize_permissions, untar, unzip, waitForServer
+from helpers import genpass, header, select_plugin_url, untar, unzip, waitForServer
 import html
 import json
 import os
 import pathlib
 import re
 import requests
+from shared import _version, _repo
 import shutil
 import subprocess
 import urllib.parse
@@ -23,7 +21,7 @@ import urllib.request
 # ======== Process initial container options ========
 
 parser = argparse.ArgumentParser(
-	description = f"TF2-docker container setup script, version {__version__}",
+	description = f"TF2-docker container setup script, version {_version}",
 	formatter_class = argparse.ArgumentDefaultsHelpFormatter
 )
 
@@ -32,9 +30,6 @@ parser.add_argument("--profile-name", "-p", type=str, required=True, help="A pro
 parser.add_argument("--region-name", "-r", type=str, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide a region, e.g. \"dallas\"")
 parser.add_argument("--instance-number", "-i", type=int, required=True, help="Docker containers are created with names like \"tf2-default-dallas-1\". Provide an instance number, e.g. \"1\"")
 parser.add_argument("--cpu-affinity", "-c", type=str, default="", help="The CPUs in which to allow container execution. e.g. \"0,1\" or \"0-3\"")
-
-# Plugin-specific options
-parser.add_argument("--with-sbpp", action="store_true", help="Attempts to install SourceBans++ using the configuration supplied in \"sbpp.ini\".")
 
 # Behavioral options
 parser.add_argument("--overwrite", "-o", action="store_true", help="Stops and removes any preexisting containers with the same name.")
@@ -72,7 +67,10 @@ preexisting = client.containers.list(all=True, filters={"name": container_name})
 descriptors = [f"{i}: {i.name}" for i in preexisting]
 if descriptors:
 	if not args.overwrite:
-		raise SystemExit(f"ERROR: Found {len(preexisting)} pre-existing container(s) matching the name \"{container_name}\":\n\t{descriptors}\n\nYou may need to delete them or pick another identifier.")
+		message = f"ERROR: Found {len(preexisting)} pre-existing container(s) matching the name \"{container_name}\":\n"
+		message += "\t{descriptors}\n\n"
+		message += "You may need to delete them or pick another identifier."
+		error(message)
 	else:
 		# "Overwrite" the container(s)
 		print("WARNING: Overwriting preexisting containers!")
@@ -94,7 +92,9 @@ try:
 	pathlib.Path.mkdir(data_dir, parents=True)
 except FileExistsError:
 	if not args.force_reuse:
-		raise SystemExit("ERROR: A data directory for a container with this name already exists.\nSince there doesn't seem to be an associated container, you may wish to delete it.")
+		message = "ERROR: A data directory for a container with this name already exists."
+		message += "\nSince there doesn't seem to be an associated container, you may wish to delete it."
+		error(message)
 
 # Randomized passwords get stored here
 try:
@@ -251,6 +251,19 @@ for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
 
 # ======== Install server plugins ========
 
+def handle_custom_installation(cust_inst):
+	filename = cust_inst["file_to_exec"]
+	with open(f"plugin-installers/{filename}") as f:
+		exec(f.read())
+	if "function_to_call" in cust_inst:
+		func_name = cust_inst["function_to_call"]
+		arg_str = ""
+		if "function_arguments" in cust_inst:
+			arg_str = cust_inst["function_arguments"]
+		exec(f"{func_name}({arg_str})")
+
+post_installation_plugins = []
+
 if config.has_section("plugins"):
 	header("Installing plugins...", newlines=(0, 1))
 	plugins = config["plugins"]
@@ -312,13 +325,13 @@ if config.has_section("plugins"):
 
 	# Set the user agent for urllib.request.urlretrieve(), used for file downloads
 	opener = urllib.request.build_opener()
-	opener.addheaders = [("User-Agent", f"setup.py/{__version__} ({__ghrepo})")]
+	opener.addheaders = [("User-Agent", f"setup.py/{_version} ({_repo})")]
 	urllib.request.install_opener(opener)
 
 	# Now download and install the plugins requested.
 	session = requests.Session()
 	# Set the user agent for the session, used for requesting webpages
-	session.headers.update({"User-Agent": f"setup.py/{__version__} ({__ghrepo})"})
+	session.headers.update({"User-Agent": f"setup.py/{_version} ({_repo})"})
 	requested_plugins = plugins.get("requested-plugins")
 	if requested_plugins:
 		requested_plugins = requested_plugins.split(",")
@@ -331,117 +344,105 @@ if config.has_section("plugins"):
 				else:
 					print("WARNING: Extra comma in requested-plugins?")
 				continue
-			print(f"\nDownloading and installing plugin: {pname}")
-			# Get the plugin entry
-			p = plugin_db["plugins"][pname]
-			# Directly download the plugin from the specified URL and install it as specified
-			if "force_download" in p:
-				print("\tDownloading and installing according to plugins.json...")
+			# Handle plugins with optional features
+			to_process = [pname]
+			features_start = pname.find("[")
+			if features_start != -1:
+				base = pname[:features_start]
+				feature_names = pname[features_start + 1:-1].split("&")
+				print(f"\n{base} requested with features: {', '.join(feature_names)}")
+				to_process = {base}
+				# Plugin requirements
+				if "requires" in plugin_db["plugins"][base]:
+					for requirement in plugin_db["plugins"][base]["requires"]:
+						to_process.add(requirement)
+				# Enabled plugin feature requirements
+				for fname in feature_names:
+					for f_requirement in plugin_db["plugins"][base]["optional_features"][fname]["requires"]:
+						to_process.add(f_requirement)
+				print(f"Plugins to fetch: {', '.join(to_process)}")
+			for pname in to_process:
+				print(f"\nDownloading and installing plugin: {pname}")
+				# Get the plugin entry
+				p = plugin_db["plugins"][pname]
+				# For plugins downloaded from attachments and plugin compiler links.
+				extract_to = f"container-data/{container_name}/tf/"
+				# Overridden by the force_extract_to parameter.
+				if "force_extract_to" in p:
+					extract_to = f"container-data/{container_name}/{p['force_extract_to']}"
+				# Directly download the plugin from the specified URL and install it as specified
+				if "force_download" in p:
+					print("\tDownloading and installing according to plugins.json...")
 
-				# Grab plugin download configuration values
-				url = p["force_download"]["url"]
-				format = p['force_download']['format']
-				assert format.startswith(".")
-				strip_leading_dir = p["force_download"].get("strip_leading_dir")
-				install_location = p["force_download"]["install_location"]
+					# Grab plugin download configuration values
+					url = p["force_download"]["url"]
+					format = p['force_download']['format']
+					assert format.startswith(".")
+					strip_leading_dir = p["force_download"].get("strip_leading_dir")
+					install_location = p["force_download"]["install_location"]
 
-				# We're using this legacy urllib method because it lets us specify a destination filename easily
-				dest_filename = f"downloads/{pname}{format}"
-				urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
+					# We're using this legacy urllib method because it lets us specify a destination filename easily
+					dest_filename = f"downloads/{pname}{format}"
+					urllib.request.urlretrieve(p["force_download"]["url"], dest_filename)
 
-				# Handle installation
-				if format == ".zip":
-					unzip(dest_filename, f"container-data/{container_name}/{install_location}", strip_leading_dir=strip_leading_dir)
+					# Handle installation
+					if format == ".zip":
+						unzip(dest_filename, f"container-data/{container_name}/{install_location}", strip_leading_dir=strip_leading_dir)
+					elif format == ".tar.gz":
+						# Extract.
+						extracted = untar(dest_filename)
+
+						# Now copy it in and then delete the extracted files
+						shutil.copytree(extracted, f"container-data/{container_name}/{install_location}", dirs_exist_ok=True)
+						shutil.rmtree(extracted)
+					elif format == ".smx":
+						try:
+							# Literally just move it into the server
+							shutil.move(dest_filename, f"container-data/{container_name}/{install_location}")
+						except shutil.Error:
+							# Probably alreadys exists due to --force-reuse
+							# Might as well do a lazy check that this is the case
+							assert args.force_reuse
+					else:
+						error("ERROR: Unknown plugin download extension: {format}", is_issue=True)
+				elif "custom_install" in p:
+					cust_inst = p["custom_install"]
+					# Defer plugin configuration scripts that rely on autogenerated configs
+					if "post_installation" in cust_inst:
+						if cust_inst["post_installation"]:
+							print(f"Deferring installation of {pname}...")
+							post_installation_plugins.append(cust_inst)
+							continue
+					handle_custom_installation(cust_inst)
+				# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
 				else:
-					# TODO
-					print("TODO: Install the plugin as specified")
-			# Otherwise, try to get a download link from the plugin's AlliedModders thread's webpage HTML
-			else:
-				print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
-				response = session.get(p["thread_url"])
-				content = response.content.decode("latin")
-				# One of these ought to work at least some of the time
-				# A. Try to get an attachment; we currently only look for a zip
-				attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
-				if len(attachment_urls_escaped) > 1:
-					error = f"\nERROR: Got {len(attachment_urls_escaped)} plugin download URLs (expected 1): {attachment_urls_escaped}"
-					error += f"\nPlease create an issue at: {gh_repo}"
-					raise SystemExit(error)
-				elif len(attachment_urls_escaped) == 1:
-					# Note that this variable is just in the singular form
-					attachment_url_escaped = attachment_urls_escaped[0]
-					print(f"\tGot escaped download URL from thread: {attachment_url_escaped}")
-					attachment_url = html.unescape(attachment_url_escaped)
-					print(f"\tGot download URL from thread: {attachment_url}")
-					urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
-					unzip(f"downloads/{pname}.zip", f"container-data/{container_name}/tf/")
-				# B. No attachments found; try to get the plugin as compiled from source
-				else:
-					print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
-					plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
-					# Default selection
-					compiler_selection = 0
-					# User specified selection
-					if "force_compiler_selection" in p:
-						compiler_selection = p["force_compiler_selection"]
-					# If the user doesn't specify and there's more than once choice, bail out
-					elif len(plugin_compiler_urls) > 1:
-						error = f"\nERROR: Found {len(plugin_compiler_urls)} plugin compiler URLs (expected 1): {plugin_compiler_urls}"
-						error += "\nHint: You can specify an index to select in plugins.json with the field \"force_compiler_selection\"."
-						raise SystemExit(error)
-					# Try to retrieve the requested index
+					print(f"\tAttempting to download the plugin from the AlliedModders forum thread ({p['thread_url']})...")
+					response = session.get(p["thread_url"])
+					content = response.content.decode("latin")
+					# Option A: Try to get an attachment; currently, we only look for a zip
+					attachment_urls_escaped = re.findall(r'(?<=href=")attachment.php.*(?=")(?=.*zip)', content)
 					try:
 						# Note that this variable is just in the singular form
-						plugin_compiler_url = plugin_compiler_urls[compiler_selection]
-						print(f"\tGot plugin compiler URL from thread: {plugin_compiler_url}")
-						urllib.request.urlretrieve(plugin_compiler_url, f"downloads/{pname}.smx")
-					except IndexError:
-						raise SystemExit(f"ERROR: Compiler list index selection ({compiler_selection}) out of range ({len(plugin_compiler_urls)})")
+						attachment_url_escaped = select_plugin_url(p, attachment_urls_escaped, type="attachment")
+						print(f"\tGot (escaped) plugin attachment URL from thread: {attachment_url_escaped}")
+						attachment_url = html.unescape(attachment_url_escaped)
+						print(f"\tGot plugin attachment URL from thread: {attachment_url}")
+						urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
+						unzip(f"downloads/{pname}.zip", extract_to)
+					# Option B: No attachments found; try to get the plugin as compiled from source
+					except ValueError:
+						print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
+						plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
+						try:
+							# Note that this variable is just in the singular form
+							plugin_compiler_url = select_plugin_url(p, plugin_compiler_urls, type="compiler")
+							print(f"\tGot plugin compiler URL from thread: {plugin_compiler_url}")
+							# Download it directly into the server
+							urllib.request.urlretrieve(plugin_compiler_url, f"container-data/{container_name}/tf/addons/sourcemod/plugins/{pname}.smx")
+						except ValueError:
+							# No plugin compiler links found, raise and exit
+							raise
 
-
-# ======== Install SourceBans++ ========
-
-# If the user requested SourceBans++ installation, go ahead and attempt it.
-if args.with_sbpp:
-	header("Attempting SourceBans++ installation...", newlines=(2, 1))
-	# Make sure sbpp.ini exists. If it does, the user has run ./sbpp-installer.py, although that doesn't necessarily mean it was successful. Geronimo!
-	assert config.read("sbpp.ini") == ["sbpp.ini"]
-	# Figure out the latest version of SBPP.
-	response = session.get("https://github.com/sbpp/sourcebans-pp/releases")
-	# We need the plugin only...
-	versions = re.findall(r'(?<=href=")/sbpp/sourcebans-pp/releases/download/[0-9.]+/sourcebans-pp-[0-9.]+.plugin-only.tar.gz(?=")', response.content.decode(), flags=re.M)
-	latest = versions[0]
-	download_url = f"https://github.com/{latest}"
-	# Download it.
-	dest_filename = "downloads/sourcebans-pp-latest.plugin-only.tar.gz"
-	urllib.request.urlretrieve(download_url, dest_filename)
-	# Extract.
-	extracted = untar(dest_filename, expect_root_regex="addons")
-	# Normalize permissions yes
-	normalize_permissions(extracted)
-	# Now copy it in and then delete the extracted files
-	shutil.copytree(extracted, f"container-data/{container_name}/tf/addons/", dirs_exist_ok=True)
-	shutil.rmtree(extracted)
-	# Insert the SourceBans++ database configuration from sbpp.ini
-	# This formatting is as good as it's gonna get
-	# By the way, the default database connect timeout appears to be 60 seconds if you leave it set to 0
-	# (https://github.com/alliedmodders/sourcemod/blob/1fbe5e/extensions/mysql/mysql/MyDriver.cpp#L101)
-	# So yeah we use 10 seconds, that's plenty generous
-	db_cfg = (
-		'\n	"sourcebans"\n'
-		'	{\n'
-		'		"driver"	"default"\n'
-		f'		"host"		"{config["sbpp"]["db-host"]}"\n'
-		f'		"database"	"{config["sbpp"]["db-name"]}"\n'
-		f'		"user"		"{config["sbpp"]["db-user"]}"\n'
-		f'		"pass"		"{config["sbpp"]["db-pass"]}"\n'
-		'		"timeout"	"10"\n'
-		f'		"port"		"{config["sbpp"]["db-port"]}"\n'
-		'	}\n'
-		'}'
-	)
-	edit("tf/addons/sourcemod/configs/databases.cfg", r'}\n*\Z', db_cfg)
-	print("Success!")
 
 header("Plugin installation complete, starting the container...", newlines=(2, 0))
 container.start()
@@ -453,6 +454,10 @@ container.start()
 # Config files will have been generated for newly-installed plugins once the server is online.
 print("\nWaiting for the server to come online so we can reconfigure any plugins...")
 waitForServer(args.host_ip, int(srcds["SRCDS_PORT"]))
+
+header("Processing deferred installations...", newlines=(1, 1))
+for cust_inst in post_installation_plugins:
+	handle_custom_installation(cust_inst)
 
 header("Reconfiguring plugins...", newlines=(1, 1))
 p = pathlib.PosixPath(f"{profile_prefix}/reconfigure/")
@@ -473,14 +478,6 @@ for f in p.glob("**/*"):
 			print(f"Got key \"{key}\", substituting matching lines")
 			sv_f_data = re.sub(f"^{key}.*", line, sv_f_data, flags=re.M)
 		sv_f.write_text(sv_f_data)
-
-if args.with_sbpp:
-	# Configure the SourceBans++ table prefix
-	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"DatabasePrefix"\t"sb"', f'"DatabasePrefix"\t"{config["sbpp"]["db-table-prefix"]}"')
-	# Tell SourceBans++ what the server ID is
-	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"ServerID"\t\t"-1"', f'"ServerID"\t\t"{args.instance_number}"')
-	# Set the SourceBans++ website URL
-	edit("tf/addons/sourcemod/configs/sourcebans/sourcebans.cfg", '"Website"\t\t\t"http://www.yourwebsite.net/"', f'"Website"\t\t\t"{config["sbpp"]["webpanel-url"]}"')
 
 
 # ======== Yeet ========
