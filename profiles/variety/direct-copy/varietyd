@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import daemon
+import datetime
 import logging, logging.handlers
 import os
 import pprint
+import pytz
 import re
 import requests
-import schedule
+import scheduler
 import setproctitle
 import signal
 import subprocess
@@ -32,6 +34,11 @@ with open("container-info.dat") as f:
 # Pre-load the webhook url
 with open("varietyd-webhook-url.txt") as f:
 	webhook_url = f.read().strip()
+
+
+# The timezone to use for the scheduler
+with open("scheduler_timezone.txt") as f:
+	tz_name = f.read().strip()
 
 
 # Log to stdout and file
@@ -161,12 +168,18 @@ def main():
 	# Initialize the server's mapcycle in case it isn't already, e.g. new container
 	autorotate()
 
-	# Schedule autorotate to switch rotations every day at 6 AM
-	schedule.every().day.at("06:00").do(autorotate)
+	# Create a datetime.tzinfo-compatible object
+	ptz = pytz.timezone(tz_name)
+
+	# Instantiate a scheduler in the container's timezone
+	schedule = scheduler.Scheduler(tzinfo=ptz)
+
+	# Schedule autorotate to run every day at 6 AM
+	schedule.daily(timing=datetime.time(hour=6, tzinfo=ptz), handle=autorotate)
 
 	# Run forever-ish
 	while True:
-		schedule.run_pending()
+		schedule.exec_jobs()
 		time.sleep(1)
 
 
