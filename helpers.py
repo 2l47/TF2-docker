@@ -105,6 +105,15 @@ def select_plugin_url(plugin_entry, download_urls, type):
 	return download_urls[selection]
 
 
+# Converts a comma-delimited string into a list.
+def str_to_list(s):
+	l = []
+	for element in s.split(","):
+		# Remove leading spaces from the element
+		l.append(element.strip())
+	return l
+
+
 # Extracts the given tarfile and returns the path to the extracted files
 def untar(filename, mode="r:gz", expect_root_regex=None):
 	print(f"Opening tarfile \"{filename}\" in mode \"{mode}\" for unarchiving...")

@@ -3,7 +3,7 @@
 import argparse
 import configparser
 import docker
-from helpers import genpass, header, select_plugin_url, untar, unzip, waitForServer
+from helpers import error, genpass, header, select_plugin_url, str_to_list, untar, unzip, waitForServer
 import html
 import json
 import os
@@ -70,7 +70,7 @@ if descriptors:
 		message = f"ERROR: Found {len(preexisting)} pre-existing container(s) matching the name \"{container_name}\":\n"
 		message += "\t{descriptors}\n\n"
 		message += "You may need to delete them or pick another identifier."
-		error(message)
+		error(message, is_issue=False)
 	else:
 		# "Overwrite" the container(s)
 		print("WARNING: Overwriting preexisting containers!")
@@ -94,7 +94,7 @@ except FileExistsError:
 	if not args.force_reuse:
 		message = "ERROR: A data directory for a container with this name already exists."
 		message += "\nSince there doesn't seem to be an associated container, you may wish to delete it."
-		error(message)
+		error(message, is_issue=False)
 
 # Randomized passwords get stored here
 try:
@@ -122,19 +122,29 @@ config.read("sample-credentials.ini")
 config.read("credentials.ini")
 
 # Load any overriding or additional settings from the selected profile, if any
-if args.profile_name:
-	config.read(f"profiles/{args.profile_name}/settings.ini")
+config.read(f"profiles/{args.profile_name}/settings.ini")
 
 # srcds configuration time
 srcds = config["srcds"]
 creds = config["credentials"]
 
 # Check if we actually have a token first, though
-if len(creds["SRCDS_LOGIN_TOKEN"]) != 32:
-	print("\nWARNING: You have not entered a game server login token in credentials.ini (SRCDS_LOGIN_TOKEN).")
-	print("Without one, your server might not display in the community server browser or be reachable.")
-	print("You probably want to create one at: https://steamcommunity.com/dev/managegameservers")
-	print("See sample-credentials.ini for instructions on how to store your credentials.")
+gameserver_login_token = ""
+try:
+	section_name = f"region:{args.region_name}"
+	tokens = str_to_list(config[section_name].get("SRCDS_LOGIN_TOKENS"))
+	gameserver_login_token = tokens[args.instance_number - 1]
+	if gameserver_login_token == "":
+		print(f"\nWARNING: You have not entered a gameserver login token in credentials.ini (SRCDS_LOGIN_TOKENS) under the [{section_name}] section.\n" \
+			"Without one, your server might not display in the community server browser, be reachable, or be able to communicate with the item server.\n" \
+			"You probably want to create one at: https://steamcommunity.com/dev/managegameservers\n" \
+			"See sample-credentials.ini for instructions on how to store your credentials.")
+	elif len(gameserver_login_token) != 32:
+		error(f"\nInvalid gameserver login token for instance number {args.instance_number} of region {args.region_name}: {gameserver_login_token}", is_issue=False)
+except KeyError:
+	print("\nWARNING: You have not defined any gameserver login tokens in credentials.ini for the {args.region_name} region.")
+except IndexError:
+	error(f"\nA gameserver login token is not present for instance number {args.instance_number} of region {args.region_name}!", is_issue=False)
 
 # Check if the profile wants a random server/rcon password
 for i in ["SRCDS_PW", "SRCDS_RCONPW"]:
@@ -151,7 +161,7 @@ print(f"\nSRCDS port set to {srcds['SRCDS_PORT']}.")
 srcds["SRCDS_TV_PORT"] = str(int(srcds["SRCDS_TV_START_PORT"]) + args.instance_number - 1)
 print(f"SourceTV port set to {srcds['SRCDS_TV_PORT']}.")
 # We use different key names in our credential configuration files for clarity
-srcds["SRCDS_TOKEN"] = creds["SRCDS_LOGIN_TOKEN"]
+srcds["SRCDS_TOKEN"] = gameserver_login_token
 srcds["SRCDS_WORKSHOP_AUTHKEY"] = creds["STEAM_WEB_API_KEY"]
 # Construct an environment dict from our config for the docker image to use on its first run
 env = dict(srcds.items())
@@ -272,14 +282,11 @@ if config.has_section("plugins"):
 	# TODO: RGL goes here or something... maybe a preinst-module would be better for fetching maps..?
 
 	# Enable the specified plugins included with SourceMod but which are disabled by default
-	plugins_to_enable = plugins.get("enable-plugins")
+	plugins_to_enable = str_to_list(plugins.get("enable-plugins"))
 	if plugins_to_enable:
-		plugins_to_enable = plugins_to_enable.split(",")
 		repo = os.getcwd()
 		os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/disabled/")
 		for pname in plugins_to_enable:
-			# Remove leading spaces from the plugin name
-			pname = pname.strip()
 			if pname == "":
 				if len(plugins_to_enable) == 1:
 					print("No plugins to enable...")
@@ -296,14 +303,11 @@ if config.has_section("plugins"):
 		os.chdir(repo)
 
 	# Disable the specified plugins included with SourceMod
-	plugins_to_disable = plugins.get("disable-plugins")
+	plugins_to_disable = str_to_list(plugins.get("disable-plugins"))
 	if plugins_to_disable:
-		plugins_to_disable = plugins_to_disable.split(",")
 		repo = os.getcwd()
 		os.chdir(f"{data_directory}/tf/addons/sourcemod/plugins/")
 		for pname in plugins_to_disable:
-			# Remove leading spaces from the plugin name
-			pname = pname.strip()
 			if pname == "":
 				if len(plugins_to_disable) == 1:
 					print("No plugins to disable...")
@@ -332,12 +336,9 @@ if config.has_section("plugins"):
 	session = requests.Session()
 	# Set the user agent for the session, used for requesting webpages
 	session.headers.update({"User-Agent": f"setup.py/{_version} ({_repo})"})
-	requested_plugins = plugins.get("requested-plugins")
+	requested_plugins = str_to_list(plugins.get("requested-plugins"))
 	if requested_plugins:
-		requested_plugins = requested_plugins.split(",")
 		for pname in requested_plugins:
-			# Remove leading spaces from the plugin name
-			pname = pname.strip()
 			if pname == "":
 				if len(requested_plugins) == 1:
 					print("No plugins requested...")
