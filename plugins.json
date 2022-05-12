@@ -1,5 +1,5 @@
 {
-	"comment": "TODO: remove junk plugins, figure everything out",
+	"comment": "TODO: remove unused/untested plugins?",
 	"plugins": {
 		"Advertisements": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=155705",
@@ -13,11 +13,16 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=708265"
 		},
 		"Antiflood": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583",
-			"comment": "Prevents bind spamming"
+			"comment": "Prevents bind spamming",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583"
 		},
 		"Auto SourceTV Recorder": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438"
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438",
+			"force_download": {
+				"url": "https://github.com/2l47/StevoTVR-sourcemod/raw/early-autorecorder-patch/plugins/autorecorder.smx",
+				"format": ".smx",
+				"install_location": "tf/addons/sourcemod/plugins/"
+			}
 		},
 		"BanDisconnected": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1273254"
@@ -88,8 +93,8 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983726"
 		},
 		"NativeVotes": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008",
 			"comment": "We use sapphonie's sourcemod-nativevotes-updated repository, which includes several community fixes",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008",
 			"force_download": {
 				"url": "https://github.com/sapphonie/sourcemod-nativevotes-updated/releases/latest/download/nativevotes.zip",
 				"format": ".zip",
@@ -178,20 +183,20 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=187199"
 		},
 		"TeamSwitch": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=587405",
-			"comment": "Admin command."
+			"comment": "Admin command",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=587405"
 		},
 		"KickVoteImmunity": {
+			"comment": "Causes TF2 player kick votes to obey SM immunity levels",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1506666",
-			"force_compiler_selection": [0, 2],
-			"comment": "Causes TF2 player kick votes to obey SM immunity levels."
+			"force_compiler_selection": [0, 2]
 		},
 		"TidyChat": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=909778"
 		},
 		"Ultimate Mapchooser": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?t=134190",
-			"comment": "Needs some configuring."
+			"comment": "Needs some configuring",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=134190"
 		},
 		"Votealltalk": {
 			"force_download": {
@@ -202,8 +207,8 @@
 			}
 		},
 		"VotekickSwitcher": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1636142",
-			"comment": "Enables votekicks when no admins with access to sm_kick are connected."
+			"comment": "Enables votekicks when no admins with access to sm_kick are connected",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1636142"
 		},
 		"Votescramble": {
 			"force_download": {
