@@ -21,8 +21,7 @@ fi
 
 # Install prerequisites
 sudo apt update
-sudo apt install docker-compose xkcdpass -y
-sudo apt install python3-pip
+sudo apt install docker-compose python3-pip xkcdpass -y
 sudo pip3 install --target /usr/lib/python3/dist-packages python-a2s
 
 # Give the calling user access to docker

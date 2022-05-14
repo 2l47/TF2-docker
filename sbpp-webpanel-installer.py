@@ -132,11 +132,6 @@ print("\n\n======== Part 5: MariaDB Installation ========")
 # Install MariaDB. If you needed to, you could pick an alternative mirror from: https://downloads.mariadb.org/mariadb/repositories/
 print("\nInstalling MariaDB...")
 execute([
-	"apt install software-properties-common dirmngr -y",
-	"curl -LsSO https://mariadb.org/mariadb_release_signing_key.asc",
-	"chmod 644 mariadb_release_signing_key.asc",
-	"mv mariadb_release_signing_key.asc /etc/apt/trusted.gpg.d/",
-	"add-apt-repository 'deb [arch=amd64] https://mirror.rackspace.com/mariadb/repo/10.6/debian bullseye main'",
 	"apt update",
 	"apt install mariadb-server -y"
 ])
