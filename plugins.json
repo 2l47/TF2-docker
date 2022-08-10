@@ -111,6 +111,9 @@
 				"install_location": "tf/"
 			}
 		},
+		"Scheduled Shutdown": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1795055"
+		},
 		"Scrimblo": {
 			"comment": "Reportedly still in development."
 		},
