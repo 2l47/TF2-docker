@@ -5,6 +5,7 @@ sbpp.ini
 container-data/
 container-passwords/
 downloads/
+external/
 temp/
 profiles/variety/direct-copy/varietyd-webhook-url.txt
 profiles/variety/direct-copy/stac-webhook-url.txt

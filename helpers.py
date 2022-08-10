@@ -108,9 +108,10 @@ def select_plugin_url(plugin_entry, download_urls, type):
 # Converts a comma-delimited string into a list.
 def str_to_list(s):
 	l = []
-	for element in s.split(","):
-		# Remove leading spaces from the element
-		l.append(element.strip())
+	if s is not None:
+		for element in s.split(","):
+			# Remove leading spaces from the element
+			l.append(element.strip())
 	return l
 
 

@@ -68,7 +68,7 @@ descriptors = [f"{i}: {i.name}" for i in preexisting]
 if descriptors:
 	if not args.overwrite:
 		message = f"ERROR: Found {len(preexisting)} pre-existing container(s) matching the name \"{container_name}\":\n"
-		message += "\t{descriptors}\n\n"
+		message += f"\t{descriptors}\n\n"
 		message += "You may need to delete them or pick another identifier."
 		error(message, is_issue=False)
 	else:
@@ -142,7 +142,7 @@ try:
 	elif len(gameserver_login_token) != 32:
 		error(f"\nInvalid gameserver login token for instance number {args.instance_number} of region {args.region_name}: {gameserver_login_token}", is_issue=False)
 except KeyError:
-	print("\nWARNING: You have not defined any gameserver login tokens in credentials.ini for the {args.region_name} region.")
+	print(f"\nWARNING: You have not defined any gameserver login tokens in credentials.ini for the {args.region_name} region.")
 except IndexError:
 	error(f"\nA gameserver login token is not present for instance number {args.instance_number} of region {args.region_name}!", is_issue=False)
 
