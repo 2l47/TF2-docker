@@ -4,4 +4,4 @@
 
 
 _version = "0.4.0"
-_repo = "https://github.com/2l47/TF2-docker"
+_repo = "https://gitlab.com/2l47/TF2-docker"

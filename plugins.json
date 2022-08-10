@@ -17,9 +17,12 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583"
 		},
 		"Auto SourceTV Recorder": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438"
+		},
+		"Auto SourceTV Recorder_2l47": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438",
 			"force_download": {
-				"url": "https://github.com/2l47/StevoTVR-sourcemod/raw/early-autorecorder-patch/plugins/autorecorder.smx",
+				"url": "https://gitlab.com/2l47/StevoTVR-sourcemod/-/raw/autorecorder-filename-fixes/plugins/autorecorder.smx",
 				"format": ".smx",
 				"install_location": "tf/addons/sourcemod/plugins/"
 			}
@@ -74,7 +77,14 @@
 		"DynamicTargeting": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=273779"
 		},
-		"gScramble": {
+		"gScramble_BrutalGoerge": {
+			"name": "gScramble Team Balancer/Scrambler",
+			"comment": "Latest version was 3.0.33 (2015) as of May '22.",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=795723"
+		},
+		"gScramble_david": {
+			"name": "gScramble (Redux)",
+			"comment": "Temporarily took over BG's original work. Latest version was 3.0.20 (2014) as of May '22.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983244"
 		},
 		"HideAnyChatTriggers": {
