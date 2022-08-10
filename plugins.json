@@ -101,6 +101,17 @@
 				"install_location": "tf/"
 			}
 		},
+		"Scrimblo": {
+			"comment": "Reportedly still in development."
+		},
+		"Scrimblo_2l47": {
+			"comment": "Sydney's fork for early use. Currently incompatible with stock Votescramble; use Votescramble_2l47 instead.",
+			"force_download": {
+				"url": "https://gitlab.com/2l47/tf2-scrimblo/-/raw/nodebug/src/scrimblo.smx",
+				"format": ".smx",
+				"install_location": "tf/addons/sourcemod/plugins/"
+			}
+		},
 		"SecurityEntityLimit": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=2316579"
 		},
@@ -213,6 +224,15 @@
 		"Votescramble": {
 			"force_download": {
 				"url": "https://gitlab.com/nanochip/votescramble/-/archive/master/votescramble-master.zip?path=addons",
+				"format": ".zip",
+				"strip_leading_dir": true,
+				"install_location": "tf/"
+			}
+		},
+		"Votescramble_2l47": {
+			"comment": "Sydney's fork with Scrimblo support. Currently incompatible with stock Scrimblo; use Scrimblo_2l47 instead.",
+			"force_download": {
+				"url": "https://gitlab.com/2l47/votescramble/-/archive/scrimblo-support/votescramble-scrimblo-support.zip?path=addons",
 				"format": ".zip",
 				"strip_leading_dir": true,
 				"install_location": "tf/"
