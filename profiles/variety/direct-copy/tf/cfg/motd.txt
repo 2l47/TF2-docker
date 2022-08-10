@@ -1,1 +1,9 @@
 Welcome to Variety.TF!
+
+Our servers are catered towards players who want a bot-less, vanilla, casual-like experience but are tired of constantly playing on the same maps and desire a fresher experience.
+
+We feature 9 sets of community-contributed and official maps that rotate on a daily basis.
+
+You can nominate a map to play next by typing "!nominate" in chat, and vote to change maps by typing "rtv".
+
+If the teams feel unbalanced, you can vote for a scramble by saying "scramble".
