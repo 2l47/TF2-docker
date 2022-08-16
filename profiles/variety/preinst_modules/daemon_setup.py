@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
 
-from helpers import header
+from helpers import assert_exec, header
 import os
 
-
-
-# Helper function that makes sure commands execute successfully
-def execute(container, user, command):
-	exit_code, output = container.exec_run(command, user=user)
-	print(f"{output.decode()}\n")
-	assert exit_code == 0
 
 
 # Called by setup.py
@@ -58,12 +51,12 @@ def loader(profile_name, region_name, instance_number, container):
 	container.start()
 
 	# varietyd requires the following python modules
-	execute(container, "root", "apt install python3-pip -y")
-	execute(container, "steam", "pip3 install python-daemon pytz requests scheduler setproctitle")
+	assert_exec(container, "root", "apt install python3-pip -y")
+	assert_exec(container, "steam", "pip3 install python-daemon pytz requests scheduler setproctitle")
 
 	# The daemon's already been copied into /home/steam/tf-dedicated/
 	# Just edit the entry script to spawn it
-	execute(container, "steam", "sed -i 's_\#!/bin/bash_&\\n\\n./tf-dedicated/varietyd\\n_' entry.sh")
+	assert_exec(container, "steam", "sed -i 's_\#!/bin/bash_&\\n\\n./tf-dedicated/varietyd\\n_' entry.sh")
 
 	# Shut it back off
 	container.kill()

@@ -15,6 +15,13 @@ import zipfile
 
 
 
+# Helper function that makes sure commands execute successfully
+def assert_exec(container, user, command):
+	exit_code, output = container.exec_run(command, user=user)
+	print(f"{output.decode()}\n")
+	assert exit_code == 0
+
+
 # Outputs an error message and links to the GitHub repo if what happened may be an issue, then exits
 def error(message, is_issue):
 	if is_issue:

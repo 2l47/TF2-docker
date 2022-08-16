@@ -3,7 +3,7 @@
 import argparse
 import configparser
 import docker
-from helpers import error, genpass, header, select_plugin_url, str_to_list, untar, unzip, waitForServer
+from helpers import assert_exec, error, genpass, header, select_plugin_url, str_to_list, untar, unzip, waitForServer
 import html
 import json
 import os
@@ -53,7 +53,7 @@ container_name = f"tf2-{args.profile_name}-{args.region_name}-{args.instance_num
 # We use the host IP address to check if the server has been brought up later on
 if not args.host_ip:
 	args.host_ip = subprocess.check_output("hostname -I | cut -d ' ' -f 1", shell=True).decode().strip()
-	print(f"Auto-detected your public IP address as {args.host_ip}. If this is incorrect, override the value with the --host-ip option.\n")
+	print(f"Auto-detected your IP address as {args.host_ip}. If this is incorrect, override the value with the --host-ip option.\n")
 
 
 # ======== Prepare the container configuration ========
@@ -184,6 +184,24 @@ container = client.containers.create("cm2network/tf2:sourcemod", cpuset_cpus=arg
 # Start the container
 print("Starting the container...")
 container.start()
+
+# Allow users with a UID/GID other than 1000 to use bind mounts successfully without file permissions or bindfs nonsense
+UID, GID = os.getuid(), os.getgid()
+if UID != 1000 or GID != 1000:
+	# Adjust the entry script to make it wait while we change the steam user's UID/GID
+	assert_exec(container, "steam", "sed -i 's_\#!/bin/bash_&\\nsleep 15_' entry.sh")
+	# Restart the container
+	container.restart(timeout=0)
+	# Change the steam user's UID
+	assert_exec(container, "root", f"usermod -u {UID} steam")
+	# Change the ID of the steam group (also updates the steam user's GID)
+	assert_exec(container, "root", f"groupmod -g {GID} steam")
+	# Correct file permissions
+	assert_exec(container, "root", "chown -R steam:steam /home/steam/ /tmp/dumps/")
+	# Restore the entry script
+	assert_exec(container, "steam", "sed -i '/sleep 15/d' entry.sh")
+	# Restart the container again
+	container.restart(timeout=0)
 
 # Now we need to do all the actual setup stuff.
 print("Waiting for the base docker image to install the TF2 SRCDS with SourceMod before installing profile configurations, files, and plugins...\n")
