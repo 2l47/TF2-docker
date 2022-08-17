@@ -18,7 +18,9 @@ import zipfile
 # Helper function that makes sure commands execute successfully
 def assert_exec(container, user, command):
 	exit_code, output = container.exec_run(command, user=user)
-	print(f"{output.decode()}\n")
+	output = output.decode()
+	if output:
+		print(f"{output}\n")
 	assert exit_code == 0
 
 
