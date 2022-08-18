@@ -20,7 +20,7 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438"
 		},
 		"Auto SourceTV Recorder_2l47": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?p=824438",
+			"comment": "Sydney's fork with some not-yet-merged fixes.",
 			"force_download": {
 				"url": "https://gitlab.com/2l47/StevoTVR-sourcemod/-/raw/autorecorder-filename-fixes/plugins/autorecorder.smx",
 				"format": ".smx",
@@ -103,8 +103,10 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1983726"
 		},
 		"NativeVotes": {
-			"comment": "We use sapphonie's sourcemod-nativevotes-updated repository, which includes several community fixes",
-			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=208008"
+		},
+		"NativeVotes_sapphonie": {
+			"comment": "Sappho's fork with several community fixes.",
 			"force_download": {
 				"url": "https://github.com/sapphonie/sourcemod-nativevotes-updated/releases/latest/download/nativevotes.zip",
 				"format": ".zip",
@@ -162,7 +164,12 @@
 				"file_to_exec": "configure-sbpp-database.py"
 			}
 		},
-		"SourceTVManager_sapphonie_fork": {
+		"SourceTVManager": {
+			"comment": "Already included with StAC.",
+			"thread_url": "https://forums.alliedmods.net/showthread.php?t=280402"
+		},
+		"SourceTVManager_sapphonie": {
+			"comment": "Sappho's fork of SourceTVManager.",
 			"force_download": {
 				"url": "https://github.com/sapphonie/sourcetvmanager/releases/latest/download/package.zip",
 				"format": ".zip",
@@ -183,11 +190,6 @@
 					"requires": [
 						"Discord API",
 						"StAC Discord Logging"
-					]
-				},
-				"stv_tick_logging": {
-					"requires": [
-						"SourceTVManager_sapphonie_fork"
 					]
 				}
 			}
