@@ -13,7 +13,7 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=708265"
 		},
 		"Antiflood": {
-			"comment": "Prevents bind spamming",
+			"comment": "Prevents bind spamming.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1393583"
 		},
 		"Auto SourceTV Recorder": {
@@ -209,11 +209,11 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=187199"
 		},
 		"TeamSwitch": {
-			"comment": "Admin command",
+			"comment": "Admin command for switching players to the opposite team.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=587405"
 		},
 		"KickVoteImmunity": {
-			"comment": "Causes TF2 player kick votes to obey SM immunity levels",
+			"comment": "Causes TF2 player kick votes to obey SM immunity levels.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1506666",
 			"force_compiler_selection": [0, 2]
 		},
@@ -221,7 +221,7 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=909778"
 		},
 		"Ultimate Mapchooser": {
-			"comment": "Needs some configuring",
+			"comment": "Needs some configuring.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=134190"
 		},
 		"Votealltalk": {
@@ -233,7 +233,7 @@
 			}
 		},
 		"VotekickSwitcher": {
-			"comment": "Enables votekicks when no admins with access to sm_kick are connected",
+			"comment": "Enables votekicks when no admins with access to sm_kick are connected.",
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1636142"
 		},
 		"Votescramble": {
