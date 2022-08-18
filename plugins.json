@@ -108,7 +108,7 @@
 		"NativeVotes_sapphonie": {
 			"comment": "Sappho's fork with several community fixes.",
 			"force_download": {
-				"url": "https://github.com/sapphonie/sourcemod-nativevotes-updated/releases/latest/download/nativevotes.zip",
+				"url": "https://github.com/sapphonie/sourcemod-nativevotes-updated/releases/latest/download/nativevotes_sm_1.11.zip",
 				"format": ".zip",
 				"install_location": "tf/"
 			}
