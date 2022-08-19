@@ -44,25 +44,25 @@
 		},
 		"CustomChatColors": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?p=1721580",
+			"requires": [
+				"SimpleChatProcessor"
+			],
 			"force_download": {
 				"url": "http://www.doctormckay.com/download/package/chatcolors",
 				"format": ".zip",
 				"install_location": "tf/addons/sourcemod/"
-			},
-			"requires": [
-				"SimpleChatProcessor"
-			]
+			}
 		},
 		"Discord API": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=292663",
+			"requires": [
+				"SteamWorks"
+			],
 			"force_download": {
 				"url": "https://gitlab.com/Zipcore/Discord/-/archive/master/Discord-master.tar.gz",
 				"format": ".tar.gz",
 				"install_location": "tf/addons/sourcemod/"
-			},
-			"requires": [
-				"SteamWorks"
-			]
+			}
 		},
 		"Discord Forward": {
 			"force_download": {
@@ -142,9 +142,6 @@
 			"force_extract_to": "tf/addons/sourcemod/extensions/"
 		},
 		"SourceBans++": {
-			"custom_install": {
-				"file_to_exec": "sbpp-plugin-installer.py"
-			},
 			"requires": [
 				"SourceBans++ Database Configuration"
 			],
@@ -156,6 +153,9 @@
 						"SMJansson"
 					]
 				}
+			},
+			"custom_install": {
+				"file_to_exec": "sbpp-plugin-installer.py"
 			}
 		},
 		"SourceBans++ Database Configuration": {
@@ -180,11 +180,6 @@
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=75480"
 		},
 		"StAC": {
-			"force_download": {
-				"url": "https://github.com/sapphonie/StAC-tf2/releases/latest/download/stac.zip",
-				"format": ".zip",
-				"install_location": "tf/addons/sourcemod/"
-			},
 			"optional_features": {
 				"discord_logging": {
 					"requires": [
@@ -192,6 +187,11 @@
 						"StAC Discord Logging"
 					]
 				}
+			},
+			"force_download": {
+				"url": "https://github.com/sapphonie/StAC-tf2/releases/latest/download/stac.zip",
+				"format": ".zip",
+				"install_location": "tf/addons/sourcemod/"
 			}
 		},
 		"StAC Discord Logging": {
