@@ -449,7 +449,8 @@ if config.has_section("plugins"):
 						urllib.request.urlretrieve(f"https://forums.alliedmods.net/{attachment_url}", f"downloads/{pname}.zip")
 						unzip(f"downloads/{pname}.zip", extract_to)
 					# Option B: No attachments found; try to get the plugin as compiled from source
-					except ValueError:
+					except ValueError as ex:
+						print(ex)
 						print("\tWARNING: No attachment URLs found, falling back to plugin compiler links...")
 						plugin_compiler_urls = re.findall(r'(?<=href=")https://www.sourcemod.net/vbcompiler.php\?file_id=\d+', content)
 						try:

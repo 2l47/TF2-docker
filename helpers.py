@@ -9,6 +9,7 @@ import shutil
 import socket
 import subprocess
 import tarfile
+import textwrap
 import time
 from xkcdpass import xkcd_password as xp
 import zipfile
@@ -27,7 +28,7 @@ def assert_exec(container, user, command):
 # Outputs an error message and links to the GitHub repo if what happened may be an issue, then exits
 def error(message, is_issue):
 	if is_issue:
-		message += f"\n\nPlease create an issue at: {_repo}"
+		message += f"\n\nPlease create an issue at: {_repo}/issues"
 	raise SystemExit(message)
 
 
@@ -86,6 +87,8 @@ def sed(filename, pattern, repl):
 
 # Selects a download URL for a plugin
 def select_plugin_url(plugin_entry, download_urls, type):
+	# We look for an attachment first
+	STATE = "WARNING" if type == "attachment" else "ERROR"
 	selection = None
 	# If a manual selection has not been specified, expect only one option
 	expected_length = 1
@@ -105,12 +108,15 @@ def select_plugin_url(plugin_entry, download_urls, type):
 		error(f"\nERROR: Plugin {type} download URL index selection ({selection}) is out of range ({actual_length})!", is_issue=True)
 	# We expect exactly one option by default. Otherwise, if the number of options changes, the index may not be correct.
 	elif len(download_urls) != expected_length:
-		message = f"\nERROR: Got {len(download_urls)} plugin {type} download URLs (expected {expected_length}): {download_urls}"
+		message = f"\n{STATE}: Got {len(download_urls)} plugin {type} download URLs (expected {expected_length})"
+		message += f"\nNote: You can specify a specific plugin {type} URL index to select by setting the field \"force_{type}_selection\" in plugins.json."
+		message += f"\nThe format should be: \"force_{type}_selection\": [selected_index, number_of_URLs]"
+		message += "\nThe following plugin {type} download URLs were found:\n" + textwrap.indent("\n".join(download_urls), "\t")
 		message += f"\nPlugin thread URL: {plugin_entry['thread_url']}"
-		if len(download_urls) > 1:
-			message += f"\nNote: You can specify a specific plugin {type} URL index to select by setting the field \"force_{type}_selection\" in plugins.json."
-			message += f"\nThe format should be: \"force_{type}_selection\": [selected_index, number_of_URLs]"
-		error(message, is_issue=True)
+		if type == "attachment":
+			raise ValueError(message)
+		else:
+			error(message, is_issue=True)
 	return download_urls[selection]
 
 
