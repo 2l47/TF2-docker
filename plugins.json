@@ -64,13 +64,6 @@
 				"install_location": "tf/addons/sourcemod/"
 			}
 		},
-		"Discord Forward": {
-			"force_download": {
-				"url": "https://github.com/sbpp/discord-forward/releases/latest/download/sbpp_discord.smx",
-				"format": ".smx",
-				"install_location": "tf/addons/sourcemod/plugins/"
-			}
-		},
 		"DoubleQuoteFix": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=271137"
 		},
@@ -148,9 +141,7 @@
 			"optional_features": {
 				"discord_logging": {
 					"requires": [
-						"Discord Forward",
-						"SteamWorks",
-						"SMJansson"
+						"SourceBans++ Discord Forward"
 					]
 				}
 			},
@@ -162,6 +153,17 @@
 			"custom_install": {
 				"post_installation": true,
 				"file_to_exec": "configure-sbpp-database.py"
+			}
+		},
+		"SourceBans++ Discord Forward": {
+			"requires": [
+				"SMJansson",
+				"SteamWorks"
+			],
+			"force_download": {
+				"url": "https://github.com/sbpp/discord-forward/releases/latest/download/sbpp_discord.smx",
+				"format": ".smx",
+				"install_location": "tf/addons/sourcemod/plugins/"
 			}
 		},
 		"SourceTVManager": {
