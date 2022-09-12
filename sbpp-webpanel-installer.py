@@ -151,7 +151,7 @@ execute(f"mysql --execute \"CREATE DATABASE IF NOT EXISTS {sbpp['db-name']};\"")
 # These table names are hardcoded to avoid giving the SBPP db user privileges on other tables in the tf2_docker database (other plugins).
 sbpp_tables = ["admins", "admins_servers_groups", "banlog", "bans", "comments", "comms", "demos", "groups", "log", "mods", "overrides", "protests", "servers", "servers_groups", "settings", "srvgroups", "srvgroups_overrides", "submissions"]
 for table in sbpp_tables:
-	execute(f"mysql --execute \"GRANT ALL PRIVILEGES ON tf2_docker.{sbpp['db-table-prefix']}_{table} TO '{sbpp['db-user']}'@'%' IDENTIFIED BY '{sbpp['db-pass']}';\"")
+	execute(f"mysql --execute \"GRANT ALL PRIVILEGES ON {sbpp['db-name']}.{sbpp['db-table-prefix']}_{table} TO '{sbpp['db-user']}'@'%' IDENTIFIED BY '{sbpp['db-pass']}';\"")
 # Commit privilege changes
 execute("mysql --execute \"FLUSH PRIVILEGES;\"")
 
