@@ -10,14 +10,18 @@ header("Attempting SourceBans++ installation...", newlines=(2, 1))
 # Make sure sbpp.ini exists. If it does, the user has run ./sbpp-installer.py, although that doesn't necessarily mean it was successful. Geronimo!
 assert config.read("sbpp.ini") == ["sbpp.ini"]
 
-# Figure out the latest version of SBPP.
-response = session.get("https://github.com/sbpp/sourcebans-pp/releases")
+# Retrieve the latest release of SBPP.
+response = session.get("https://api.github.com/repos/sbpp/sourcebans-pp/releases/latest")
+latest = response.json()
 # We need the plugin only...
-versions = re.findall(r'(?<=href=")/sbpp/sourcebans-pp/releases/download/[0-9.]+/sourcebans-pp-[0-9.]+.plugin-only.tar.gz(?=")', response.content.decode(), flags=re.M)
-latest = versions[0]
-
+plugin_only = re.compile("sourcebans-pp-[0-9.]+.plugin-only.tar.gz")
+download_url = None
+for asset in latest["assets"]:
+	if plugin_only.fullmatch(asset["name"]):
+		download_url = asset["browser_download_url"]
+		break
+assert download_url is not None
 # Download it.
-download_url = f"https://github.com/{latest}"
 dest_filename = "downloads/sourcebans-pp-latest.plugin-only.tar.gz"
 urllib.request.urlretrieve(download_url, dest_filename)
 

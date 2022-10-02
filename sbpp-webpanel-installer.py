@@ -170,14 +170,20 @@ print("\nInstalling webserver packages...")
 execute("apt install apache2 libapache2-mod-php php-gmp php-pdo-mysql php-xml -y")
 
 print("Downloading SourceBans++ WebPanel...")
-# Figure out the latest version of SBPP.
-response = requests.get("https://github.com/sbpp/sourcebans-pp/releases")
-# We need the webpanel only...
-versions = re.findall(r'(?<=href=")/sbpp/sourcebans-pp/releases/download/[0-9.]+/sourcebans-pp-[0-9.]+.webpanel-only.tar.gz(?=")', response.content.decode(), flags=re.M)
-latest = versions[0]
-download_url = f"https://github.com/{latest}"
+
+# Retrieve the latest release of SBPP.
+response = session.get("https://api.github.com/repos/sbpp/sourcebans-pp/releases/latest")
+latest = response.json()
+# We need the plugin only...
+plugin_only = re.compile("sourcebans-pp-[0-9.]+.webpanel-only.tar.gz")
+download_url = None
+for asset in latest["assets"]:
+	if plugin_only.fullmatch(asset["name"]):
+		download_url = asset["browser_download_url"]
+		break
+assert download_url is not None
 # Download it.
-dest_filename = "sourcebans-pp-latest.webpanel-only.tar.gz"
+dest_filename = "downloads/sourcebans-pp-latest.webpanel-only.tar.gz"
 urllib.request.urlretrieve(download_url, dest_filename)
 
 print("Installing SourceBans++ WebPanel...")
@@ -192,8 +198,6 @@ sbpp_inst.chmod(0o744)
 # Extract the webpanel archive
 tar = tarfile.open(dest_filename, mode="r:gz")
 tar.extractall("/var/www/html/sbpp/")
-# Delete the downloaded archive
-pathlib.PosixPath(dest_filename).unlink()
 # Set basic permissions manually since SBPP doesn't distribute tarfiles with normal permissions...
 normalize_permissions(sbpp_inst, dir_permissions=0o555, file_permissions=0o444, type_permissions={".php": 0o544})
 # Now manually set quickstart-requested permissions, for the same reason...
