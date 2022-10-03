@@ -258,6 +258,14 @@
 				"strip_leading_dir": true,
 				"install_location": "tf/"
 			}
+		},
+		"Waiting Doors": {
+			"comment": "Open spawn doors during waiting for players round.",
+			"force_download": {
+				"url": "https://github.com/sapphonie/WaitingDoors/raw/master/plugins/waitingdoors.smx",
+				"format": ".smx",
+				"install_location": "tf/addons/sourcemod/plugins/"
+			}
 		}
 	}
 }
