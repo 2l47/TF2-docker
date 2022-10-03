@@ -111,7 +111,7 @@ def select_plugin_url(plugin_entry, download_urls, type):
 		message = f"\n{STATE}: Got {len(download_urls)} plugin {type} download URLs (expected {expected_length})"
 		message += f"\nNote: You can specify a specific plugin {type} URL index to select by setting the field \"force_{type}_selection\" in plugins.json."
 		message += f"\nThe format should be: \"force_{type}_selection\": [selected_index, number_of_URLs]"
-		message += "\nThe following plugin {type} download URLs were found:\n" + textwrap.indent("\n".join(download_urls), "\t")
+		message += f"\nThe following plugin {type} download URLs were found:\n" + textwrap.indent("\n".join(download_urls), "\t")
 		message += f"\nPlugin thread URL: {plugin_entry['thread_url']}"
 		if type == "attachment":
 			raise ValueError(message)
