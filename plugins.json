@@ -75,6 +75,10 @@
 		"Dynamic Targeting": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=273779"
 		},
+		"Extended Map Configs": {
+			"thread_url": "https://forums.alliedmods.net/showthread.php?p=760501",
+			"force_compiler_selection": [0, 2]
+		},
 		"gScramble_BrutalGoerge": {
 			"name": "gScramble Team Balancer/Scrambler",
 			"comment": "Latest version was 3.0.33 (2015) as of May '22.",
@@ -93,9 +97,6 @@
 		},
 		"Log Connections": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=201967"
-		},
-		"Map Configs": {
-			"thread_url": "https://forums.alliedmods.net/showthread.php?t=68589"
 		},
 		"Map Rate": {
 			"thread_url": "https://forums.alliedmods.net/showthread.php?t=69593"
