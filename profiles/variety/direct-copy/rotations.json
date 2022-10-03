@@ -18,11 +18,11 @@
         "koth_suijin": {
             "type": "stock"
         },
-        "koth_kemptown_b8": {
+        "koth_kemptown_rc1": {
             "type": "workshop",
             "workshop_id": "767410655"
         },
-        "koth_slaughter_b2a": {
+        "koth_slaughter_rc1": {
             "type": "workshop",
             "workshop_id": "1712845210"
         },
@@ -69,11 +69,11 @@
             "type": "workshop",
             "workshop_id": "747296123"
         },
-        "koth_bagel_rc4a": {
+        "koth_bagel_rc5": {
             "type": "workshop",
             "workshop_id": "2514036946"
         },
-        "koth_cascade_v2_b6": {
+        "koth_cascade_rc2": {
             "type": "workshop",
             "workshop_id": "1133407330"
         },
@@ -84,7 +84,7 @@
             "type": "workshop",
             "workshop_id": "1411532041"
         },
-        "pl_coal_event_rc1": {
+        "pl_coal_event_rc3a": {
             "type": "workshop",
             "workshop_id": "2628069759"
         },
@@ -94,7 +94,7 @@
         }
     },
     "R3": {
-        "cp_conifer_b7": {
+        "cp_conifer_rc2": {
             "type": "workshop",
             "workshop_id": "1419048064"
         },
@@ -109,7 +109,7 @@
             "type": "workshop",
             "workshop_id": "674719999"
         },
-        "koth_product_rcx": {
+        "koth_product_final": {
             "type": "workshop",
             "workshop_id": "454272353"
         },
@@ -117,11 +117,11 @@
             "type": "workshop",
             "workshop_id": "804090988"
         },
-        "koth_icetower_rc4": {
+        "koth_icetower_rc5": {
             "type": "workshop",
             "workshop_id": "1356347293"
         },
-        "koth_hangar_rc2": {
+        "koth_hangar_rc5": {
             "type": "workshop",
             "workshop_id": "484062492"
         },
@@ -168,14 +168,14 @@
             "type": "workshop",
             "workshop_id": "1549817316"
         },
-        "koth_sharkbay_b13": {
+        "koth_sharkbay_rc2": {
             "type": "workshop",
             "workshop_id": "2404226979"
         },
         "pl_swiftwater_final1": {
             "type": "stock"
         },
-        "pl_vigil_rc7": {
+        "pl_vigil_rc9": {
             "type": "workshop",
             "workshop_id": "1266210012"
         },
@@ -189,7 +189,7 @@
         }
     },
     "R5": {
-        "cp_overgrown_rc5a": {
+        "cp_overgrown_rc7b": {
             "type": "workshop",
             "workshop_id": "503939302"
         },
@@ -226,7 +226,7 @@
             "type": "workshop",
             "workshop_id": "1445384680"
         },
-        "pl_stranded_rc6": {
+        "pl_stranded_rc7": {
             "type": "workshop",
             "workshop_id": "1481954279"
         },
@@ -285,7 +285,7 @@
         "cp_gorge": {
             "type": "stock"
         },
-        "cp_fulgur_rc1": {
+        "cp_fulgur_rc2a": {
             "type": "workshop",
             "workshop_id": "2068252300"
         },
@@ -314,11 +314,11 @@
         "pl_borneo": {
             "type": "stock"
         },
-        "pl_cactuscanyon_redux_rc1b": {
+        "pl_cactuscanyon_redux_rc4b": {
             "type": "workshop",
             "workshop_id": "2579644293"
         },
-        "pl_boundary_final": {
+        "pl_boundary_final1": {
             "type": "workshop",
             "workshop_id": "456799153"
         },
@@ -364,7 +364,7 @@
             "type": "workshop",
             "workshop_id": "454263905"
         },
-        "pl_moonbase_rc1": {
+        "pl_moonbase_rc3": {
             "type": "workshop",
             "workshop_id": "601801525"
         },
@@ -381,7 +381,7 @@
             "type": "workshop",
             "workshop_id": "619869471"
         },
-        "cp_villa_b17a": {
+        "cp_villa_b19": {
             "type": "workshop",
             "workshop_id": "2113052569"
         },
@@ -412,7 +412,7 @@
             "type": "workshop",
             "workshop_id": "513837571"
         },
-        "pl_kinder_b14": {
+        "pl_kinder_b17": {
             "type": "workshop",
             "workshop_id": "1641154328"
         },
