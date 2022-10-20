@@ -129,7 +129,7 @@ if len(steam_web_api_key) != 32:
 
 print("\n\n======== Part 5: MariaDB Installation ========")
 
-# Install MariaDB. If you needed to, you could pick an alternative mirror from: https://downloads.mariadb.org/mariadb/repositories/
+# Install MariaDB.
 print("\nInstalling MariaDB...")
 execute([
 	"apt update",
