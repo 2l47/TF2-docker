@@ -66,6 +66,8 @@ SRCDS_RCONPW = You underestimate the power of the octave jump.
 
 Note: When "SRCDS_RCONPW" is set to "random" (the default), a randomly generated four-word passphrase (such as ["correct-horse-battery-staple"](https://xkcd.com/936/)) is used and saved to `container-rcon-passwords/your-container-name_SRCDS_RCONPW.txt`. In this example, we opt to use a static rcon password instead.
 
+Note 2: If you intend to publish a profile, you should store passwords in the profile's credentials.ini instead (using the same format).
+
 
 ### Creating custom configurations
 

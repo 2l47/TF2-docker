@@ -123,6 +123,7 @@ config.read("credentials.ini")
 
 # Load any overriding or additional settings from the selected profile, if any
 config.read(f"profiles/{args.profile_name}/settings.ini")
+config.read(f"profiles/{args.profile_name}/credentials.ini")
 
 # srcds configuration time
 srcds = config["srcds"]
