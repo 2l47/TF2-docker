@@ -13,26 +13,30 @@ assert config.read("sbpp.ini") == ["sbpp.ini"]
 # Retrieve the latest release of SBPP.
 response = session.get("https://api.github.com/repos/sbpp/sourcebans-pp/releases/latest")
 latest = response.json()
-# We need the plugin only...
-plugin_only = re.compile("sourcebans-pp-[0-9.]+.plugin-only.tar.gz")
+# We only need the SourceMod plugins, not the whole webpanel...
+plugins_only = re.compile("sourcebans-pp-[0-9.]+.plugins-only.tar.gz")
 download_url = None
+release_name = None
 for asset in latest["assets"]:
-	if plugin_only.fullmatch(asset["name"]):
+	if plugins_only.fullmatch(asset["name"]):
 		download_url = asset["browser_download_url"]
+		release_name = asset["name"].rstrip(".tar.gz")
 		break
 assert download_url is not None
+assert release_name is not None
+print(f"Fetching SBPP release \"{release_name}\" at: {download_url}")
 # Download it.
-dest_filename = "downloads/sourcebans-pp-latest.plugin-only.tar.gz"
+dest_filename = "downloads/sourcebans-pp-latest.plugins-only.tar.gz"
 urllib.request.urlretrieve(download_url, dest_filename)
 
 # Extract.
-extracted = untar(dest_filename, expect_root_regex="addons")
+extracted = untar(dest_filename, expect_root_regex=release_name)
 
 # Normalize permissions yes
 normalize_permissions(extracted)
 
 # Now copy it in and then delete the extracted files
-shutil.copytree(extracted, f"container-data/{container_name}/tf/addons/", dirs_exist_ok=True)
+shutil.copytree(f"{extracted}/addons/", f"container-data/{container_name}/tf/addons/", dirs_exist_ok=True)
 shutil.rmtree(extracted)
 
 # Insert the SourceBans++ database configuration from sbpp.ini
