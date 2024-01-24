@@ -271,11 +271,12 @@ for profile_name in ["global", args.profile_name]:
 			sv_f.write_text(sv_f_data)
 
 # Execute any user scripts for the profile
-for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
-	if filename.endswith(".py"):
-		module = filename.split(".py")[0]
-		exec(f"from profiles.{args.profile_name}.preinst_modules.{module} import loader")
-		loader(args.profile_name, args.region_name, args.instance_number, container)
+if os.path.isdir(f"profiles/{args.profile_name}/preinst_modules/"):
+	for filename in os.listdir(f"profiles/{args.profile_name}/preinst_modules/"):
+		if filename.endswith(".py"):
+			module = filename.split(".py")[0]
+			exec(f"from profiles.{args.profile_name}.preinst_modules.{module} import loader")
+			loader(args.profile_name, args.region_name, args.instance_number, container)
 
 
 # ======== Install server plugins ========
