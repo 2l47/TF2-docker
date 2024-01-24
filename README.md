@@ -59,7 +59,7 @@ Let's learn!
 # My custom server name
 SRCDS_HOSTNAME = Pink Fluffy Unicorns Dancing On Rainbows
 # My server has a password now! Only players with the password can join.
-SRCDS_PASSWORD = Could you make me some breakfast?
+SRCDS_PW = Could you make me some breakfast?
 # Use a predetermined rcon password instead of a randomly generated four-word passphrase
 SRCDS_RCONPW = You underestimate the power of the octave jump.
 ```
