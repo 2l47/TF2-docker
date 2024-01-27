@@ -12,7 +12,13 @@ __pycache__/
 /sbpp.ini
 
 /profiles/*/credentials.ini
+/profiles/*/direct-copy/tf/cfg/tv_password.cfg
 
+# Used by plugin-installers/configure-stac-discord.py
+/profiles/*/direct-copy/stac-webhook-url.txt
+
+# Append "exec sbpp_discord" to your server.cfg to use this
+/profiles/*/direct-copy/tf/cfg/sbpp_discord.cfg
+
+# Custom
 /profiles/variety/direct-copy/varietyd-webhook-url.txt
-/profiles/variety/direct-copy/stac-webhook-url.txt
-/profiles/variety/direct-copy/tf/cfg/sbpp_discord.cfg
