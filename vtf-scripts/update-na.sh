@@ -2,8 +2,6 @@
 
 set -ex
 
-git fetch
-git reset --hard origin/dev
 
 # Timezone for Variety.TF NA servers
 export TIMEZONE="America/Chicago"

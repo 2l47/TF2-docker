@@ -7,7 +7,7 @@
 # Side note: subscribed_file_ids.txt might actually be completely unnecessary for TF2.
 
 _version = "0.0.3"
-_repo = "https://github.com/2l47/TF2-docker"
+_repo = "https://gitlab.com/2l47/TF2-docker"
 
 from datetime import date
 import hashlib

@@ -2,6 +2,8 @@
 
 set -ex
 
+git fetch
+git reset --hard origin/dev
 
 # Timezone for Variety.TF EU servers
 export TIMEZONE="Europe/Luxembourg"

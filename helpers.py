@@ -25,7 +25,7 @@ def assert_exec(container, user, command):
 	assert exit_code == 0
 
 
-# Outputs an error message and links to the GitHub repo if what happened may be an issue, then exits
+# Outputs an error message and links to the GitLab repo if what happened may be an issue, then exits
 def error(message, is_issue):
 	if is_issue:
 		message += f"\n\nPlease create an issue at: {_repo}/issues"

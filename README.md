@@ -10,7 +10,7 @@ TF2-docker enables you to easily deploy TF2 servers in docker containers using p
 
 Clone the repository where you want to host your server(s):
 ```
-git clone https://github.com/2l47/TF2-docker
+git clone https://gitlab.com/2l47/TF2-docker
 cd TF2-docker
 ```
 
